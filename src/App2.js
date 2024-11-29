@@ -1,9 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Link, Routes } from "react-router-dom";
 import styled from "styled-components";
-import Hero from "./Hero"; // Importing the Hero component
-import Philosophy from "./Philosophy"; // Corrected import for Philosophy component
-import Projects from "./Projects"; // Importing Projects component
+import HomeScreen from "./HomeScreen"; // Importing the HomeScreen component
+import KontaktScreen from "./Projects"; // Importing the KontaktScreen component
 
 // Styled Components for the toolbar and tabs
 const Toolbar = styled.div`
@@ -11,10 +10,10 @@ const Toolbar = styled.div`
   padding: 15px;
   display: flex;
   justify-content: space-around;
-  position: fixed;
-  width: 100%;
+  position: fixed; /* Fix the toolbar at the top */
+  width: 100%; /* Make sure it stretches across the screen */
   top: 0;
-  z-index: 1000;
+  z-index: 1000; /* Ensures toolbar stays on top of other content */
 `;
 
 const Tab = styled.div`
@@ -28,45 +27,44 @@ const Tab = styled.div`
   }
 `;
 
+// Navigation Link Styled Component
 const StyledLink = styled(Link)`
   text-decoration: none;
 `;
 
 const AppContainer = styled.div`
-  margin-top: 60px;
-  min-height: 100vh;
+  margin-top: 60px; /* Space for the fixed toolbar */
+  min-height: 100vh; /* Ensure content takes at least the full screen height */
   display: flex;
   flex-direction: column;
 `;
 
-const App = () => {
+function App() {
   return (
     <Router>
       <div className="App">
         {/* Navigation Toolbar */}
         <Toolbar>
-          <StyledLink to="/">
+          <StyledLink to="/brødrene-ervik">
             <Tab>Alcatelz</Tab>
           </StyledLink>
-          <StyledLink to="/philosophy">
-            <Tab>Philosophy</Tab>
-          </StyledLink>
-          <StyledLink to="/projects">
-            <Tab>Projects</Tab>
+          <StyledLink to="/kontakt">
+            <Tab>About</Tab>
           </StyledLink>
         </Toolbar>
 
         {/* Page content */}
         <AppContainer>
           <Routes>
-            <Route path="/" element={<Hero />} /> {/* Hero as default route */}
-            <Route path="/philosophy" element={<Philosophy />} /> {/* Philosophy page */}
-            <Route path="/projects" element={<Projects />} /> {/* Projects page */}
+            {/* Set HomeScreen as default */}
+            <Route path="/" element={<HomeScreen />} /> {/* HomeScreen as default route */}
+            <Route path="/brødrene-ervik" element={<HomeScreen />} /> {/* HomeScreen as Brødrene Ervik page */}
+            <Route path="/kontakt" element={<KontaktScreen />} /> {/* KontaktScreen as Kontakt page */}
           </Routes>
         </AppContainer>
       </div>
     </Router>
   );
-};
+}
 
 export default App;
