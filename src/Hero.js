@@ -24,7 +24,7 @@ const HeroContainer = styled.div`
 
 const SwiperImage = styled.img`
   width: 100%;
-  height: 70vh; /* Hero image takes 80% of the height */
+  height: 70vh; /* Hero image takes 70% of the height */
   object-fit: cover;
 `;
 
@@ -92,6 +92,17 @@ const CompanySlider = styled(Slider)`
   }
 `;
 
+// New styled component for the footer text at the bottom
+const FooterText = styled.div`
+  position: absolute;
+  bottom: 20px; /* Position the footer text at the bottom of the page */
+  width: 100%;
+  text-align: center;
+  font-size: 18px;
+  color: #fff;
+  font-weight: bold;
+`;
+
 function Hero() {
   const settings = {
     dots: false,
@@ -136,6 +147,11 @@ function Hero() {
             </CompanySlider>
           </SliderWrapper>
         </CompanySliderSection>
+
+        {/* Footer Text */}
+        <FooterText>
+          Vegar Lee Berentsen
+        </FooterText>
       </HeroContainer>
     </>
   );
