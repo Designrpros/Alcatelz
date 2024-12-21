@@ -115,14 +115,14 @@ const projects = [
     description: "An innovative project management tool designed for tradesmen, offering a unique map-based interface for iOS, macOS, and visionOS users. Developed by Vegar Berentsen, Mapr allows users to visualize the geographical distribution of their ongoing projects, manage contacts, track time, and more.",
   },
   {
-    name: "Prima",
-    url: "https://prima-umber.vercel.app",
-    description: "A platform offering VR experiences aimed at enhancing the lifestyle and wellness of older adults.",
-  },
-  {
     name: "Akthe",
     url: "https://akthe.vercel.app",
     description: "An aktivitetsbasert helsehjelp (activity-based healthcare) platform providing solutions focused on engaging individuals in meaningful activities to promote health and well-being.",
+  },
+  {
+    name: "Prima",
+    url: "https://prima-umber.vercel.app",
+    description: "A platform offering VR experiences aimed at enhancing the lifestyle and wellness of older adults.",
   },
   {
     name: "Lydhagen",
