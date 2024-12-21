@@ -109,47 +109,61 @@ const projects = [
     name: "Mapr",
     url: "https://apps.apple.com/no/app/mapr/id6450910273", // App Store link for Mapr
     image: MaprLogo,
-    description: "A modern data visualization platform (App) with Mapr logo.",
+    description: "A multi-management tool for tradesmen, working on iOS, macOS, and the world's first tool for tradesmen on Vision Pro. Developed by Vegar Berentsen.",
   }, 
+
   { 
     name: "Prima", 
     url: "https://prima-umber.vercel.app", 
-    description: "A premium lifestyle and wellness brand." 
+    description: "VR experiences designed for older people, enhancing their wellness and lifestyle." 
   },
+
   { 
     name: "Akthe", 
     url: "https://akthe.vercel.app", 
-    description: "A tech-forward solution for remote work." 
+    description: "An aktivitetsbasert helsehjelp platform, providing activity-based healthcare solutions." 
   },
+
   { 
     name: "Lydhagen", 
     url: "https://lydhagen.vercel.app", 
-    description: "A cutting-edge audio production studio." 
+    description: "A local Norwegian music festival for Bærum kommune, focusing on community and music culture." 
   },
+
   { 
     name: "Studio 51", 
     url: "https://prima-umber.vercel.app", 
-    description: "An award-winning creative agency." 
+    description: "A company in collaboration with Bærum kommune and part of Akthe, focusing on creative healthcare solutions." 
   },
+
   { 
     name: "Høl i CVen", 
     url: "https://h-l-i-c-ven.vercel.app", 
-    description: "A unique job-seeking platform." 
+    description: "A coffee shop initiative for people in need, operating under Akthe's umbrella." 
   },
+
   { 
     name: "Designr.pro", 
     url: "https://www.designr.pro", 
-    description: "A tool for professional design projects." 
+    description: "My personal brand homepage and CV, showcasing my professional design projects and work philosophy." 
   },
+
   { 
     name: "Brodrene Ervik", 
     url: "https://brodrene-ervik.vercel.app/", 
-    description: "A Norwegian construction company website." 
+    description: "A small project for a Norwegian construction company." 
   },
+
   { 
     name: "Bærum Bygg Fornyelse", 
     url: "https://www.baerumbyggfornyelse.no/", 
-    description: "A construction and renovation company in Bærum." 
+    description: "My first external project, a website for a construction and renovation company in Bærum." 
+  },
+
+  { 
+    name: "Alcatelz", 
+    url: "https://www.alcatelz.com/", 
+    description: "My portfolio page, displaying all the projects I'm working on and my work philosophy." 
   },
 ];
 
