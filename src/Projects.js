@@ -107,63 +107,54 @@ const ProjectDescription = styled.p`
 const projects = [
   {
     name: "Mapr",
-    url: "https://apps.apple.com/no/app/mapr/id6450910273", // App Store link for Mapr
+    url: "https://apps.apple.com/no/app/mapr/id6450910273",
     image: MaprLogo,
-    description: "A multi-management tool for tradesmen, working on iOS, macOS, and the world's first tool for tradesmen on Vision Pro. Developed by Vegar Berentsen.",
-  }, 
-
-  { 
-    name: "Prima", 
-    url: "https://prima-umber.vercel.app", 
-    description: "VR experiences designed for older people, enhancing their wellness and lifestyle." 
+    description: "An innovative project management tool designed for tradesmen, offering a unique map-based interface for iOS, macOS, and visionOS users. Developed by Vegar Berentsen, Mapr allows users to visualize the geographical distribution of their ongoing projects, manage contacts, track time, and more.",
   },
-
-  { 
-    name: "Akthe", 
-    url: "https://akthe.vercel.app", 
-    description: "An aktivitetsbasert helsehjelp platform, providing activity-based healthcare solutions." 
+  {
+    name: "Prima",
+    url: "https://prima-umber.vercel.app",
+    description: "A platform offering VR experiences aimed at enhancing the lifestyle and wellness of older adults.",
   },
-
-  { 
-    name: "Lydhagen", 
-    url: "https://lydhagen.vercel.app", 
-    description: "A local Norwegian music festival for Bærum kommune, focusing on community and music culture." 
+  {
+    name: "Akthe",
+    url: "https://akthe.vercel.app",
+    description: "An aktivitetsbasert helsehjelp (activity-based healthcare) platform providing solutions focused on engaging individuals in meaningful activities to promote health and well-being.",
   },
-
-  { 
-    name: "Studio 51", 
-    url: "https://prima-umber.vercel.app", 
-    description: "A company in collaboration with Bærum kommune and part of Akthe, focusing on creative healthcare solutions." 
+  {
+    name: "Lydhagen",
+    url: "https://lydhagen.vercel.app",
+    description: "A local Norwegian music festival in Bærum kommune, dedicated to fostering community engagement through music and cultural events.",
   },
-
-  { 
-    name: "Høl i CVen", 
-    url: "https://h-l-i-c-ven.vercel.app", 
-    description: "A coffee shop initiative for people in need, operating under Akthe's umbrella." 
+  {
+    name: "Studio 51",
+    url: "https://prima-umber.vercel.app",
+    description: "Also known as Rap Clinic, Studio 51 is a municipal initiative in Bærum kommune that uses music as a medium for identity formation and social participation, particularly targeting individuals dealing with mental health and substance abuse challenges.",
   },
-
-  { 
-    name: "Designr.pro", 
-    url: "https://www.designr.pro", 
-    description: "My personal brand homepage and CV, showcasing my professional design projects and work philosophy." 
+  {
+    name: "Høl i CVen",
+    url: "https://h-l-i-c-ven.vercel.app",
+    description: "A coffee shop initiative under Akthe, providing employment opportunities and support for individuals in need, aiming to integrate them into the workforce and community.",
   },
-
-  { 
-    name: "Brodrene Ervik", 
-    url: "https://brodrene-ervik.vercel.app/", 
-    description: "A small project for a Norwegian construction company." 
+  {
+    name: "Designr.pro",
+    url: "https://www.designr.pro",
+    description: "The personal brand homepage and CV of a professional designer, showcasing various design projects, work philosophy, and professional experience.",
   },
-
-  { 
-    name: "Bærum Bygg Fornyelse", 
-    url: "https://www.baerumbyggfornyelse.no/", 
-    description: "My first external project, a website for a construction and renovation company in Bærum." 
+  {
+    name: "Brodrene Ervik",
+    url: "https://brodrene-ervik.vercel.app/",
+    description: "A project developed for a Norwegian construction company, highlighting their services and previous work.",
   },
-
-  { 
-    name: "Alcatelz", 
-    url: "https://www.alcatelz.com/", 
-    description: "My portfolio page, displaying all the projects I'm working on and my work philosophy." 
+  {
+    name: "Bærum Bygg Fornyelse",
+    url: "https://www.baerumbyggfornyelse.no/",
+    description: "A construction and renovation company based in Bærum, specializing in building renewal projects. This was one of the developer's first external projects.",
+  },
+  {
+    name: "Alcatelz",
+    url: "https://www.alcatelz.com/",
+    description: "A personal portfolio page displaying various projects and outlining the creator's work philosophy.",
   },
 ];
 
