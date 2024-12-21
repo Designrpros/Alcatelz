@@ -140,11 +140,6 @@ const projects = [
     description: "A coffee shop initiative under Akthe, providing employment opportunities and support for individuals in need, aiming to integrate them into the workforce and community.",
   },
   {
-    name: "Designr.pro",
-    url: "https://www.designr.pro",
-    description: "The personal brand homepage and CV of a professional designer, showcasing various design projects, work philosophy, and professional experience.",
-  },
-  {
     name: "Brodrene Ervik",
     url: "https://brodrene-ervik.vercel.app/",
     description: "A project developed for a Norwegian construction company, highlighting their services and previous work.",
@@ -153,6 +148,11 @@ const projects = [
     name: "Bærum Bygg Fornyelse",
     url: "https://www.baerumbyggfornyelse.no/",
     description: "A construction and renovation company based in Bærum, specializing in building renewal projects. This was one of the developer's first external projects.",
+  },
+  {
+    name: "Designr.pro",
+    url: "https://www.designr.pro",
+    description: "The personal brand homepage and CV of a professional designer, showcasing various design projects, work philosophy, and professional experience.",
   },
   {
     name: "Alcatelz",
