@@ -85,10 +85,13 @@ const ProjectPreview = styled.iframe`
 `;
 
 const ProjectImage = styled.img`
-  width: 100%;
+  width: 80%; /* Slightly smaller width for balance */
   height: auto;
-  border-radius: 10px;
+  border-radius: 15px; /* More rounded corners for a modern look */
   margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow for depth */
+  object-fit: contain; /* Ensures the logo maintains its aspect ratio */
+  max-width: 300px; /* Prevents excessively large images */
 `;
 
 const ProjectTitle = styled.h2`
@@ -108,7 +111,7 @@ const projects = [
   {
     name: "Mapr",
     url: "https://apps.apple.com/no/app/mapr/id6450910273",
-    image: MaprLogo,
+    image: <ProjectImage src={MaprLogo} alt="Mapr Logo" />, // Integrate styled image
     description: "An innovative project management tool designed for tradesmen, offering a unique map-based interface for iOS, macOS, and visionOS users. Developed by Vegar Berentsen, Mapr allows users to visualize the geographical distribution of their ongoing projects, manage contacts, track time, and more.",
   },
   {
