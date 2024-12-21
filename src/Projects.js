@@ -111,7 +111,7 @@ const projects = [
   {
     name: "Mapr",
     url: "https://apps.apple.com/no/app/mapr/id6450910273",
-    image: <ProjectImage src={MaprLogo} alt="Mapr Logo" />, // Integrate styled image
+    image: MaprLogo,
     description: "An innovative project management tool designed for tradesmen, offering a unique map-based interface for iOS, macOS, and visionOS users. Developed by Vegar Berentsen, Mapr allows users to visualize the geographical distribution of their ongoing projects, manage contacts, track time, and more.",
   },
   {
