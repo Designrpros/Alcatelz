@@ -131,7 +131,7 @@ const projects = [
   },
   {
     name: "Studio 51",
-    url: "https://prima-umber.vercel.app",
+    url: "https://studio51.vercel.app",
     description: "Also known as Rap Clinic, Studio 51 is a municipal initiative in Bærum kommune that uses music as a medium for identity formation and social participation, particularly targeting individuals dealing with mental health and substance abuse challenges.",
   },
   {
