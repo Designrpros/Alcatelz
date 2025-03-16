@@ -150,6 +150,16 @@ const projects = [
     description: "A construction and renovation company based in Bærum, specializing in building renewal projects. This was one of the developer's first external projects.",
   },
   {
+    name: "Cinematographer Portfolio",
+    url: "https://cinematographer2.vercel.app",
+    description: "A portfolio showcasing the work of a cinematographer, featuring stunning visuals and projects that highlight their expertise in filmmaking and visual storytelling.",
+  },
+  {
+    name: "LIORA",
+    url: "https://liora-one.vercel.app",
+    description: "An artist webpage for LIORA, designed to display her creative works, artistic vision, and personal style through an engaging and visually appealing interface.",
+  },
+  {
     name: "Designr.pro",
     url: "https://www.designr.pro",
     description: "The personal brand homepage and CV of a professional designer, showcasing various design projects, work philosophy, and professional experience.",
