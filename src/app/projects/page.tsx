@@ -1,5 +1,5 @@
 // src/app/projects/page.tsx
-"use client";
+"use client"; // This component uses client-side features (React state, browser APIs, styled-components)
 
 import React from "react";
 import styled from "styled-components";
@@ -14,7 +14,7 @@ interface ProjectItem {
   name: string;
   url: string;
   description: string;
-  image?: string;
+  image?: string; // Optional image path for projects that have a specific logo/thumbnail
 }
 
 interface ProjectCategory {
@@ -23,6 +23,7 @@ interface ProjectCategory {
   projects: ProjectItem[];
 }
 
+// All project categories with updated data and new image assignments
 const projectCategories: ProjectCategory[] = [
   {
     name: 'Mobile Apps',
@@ -32,19 +33,19 @@ const projectCategories: ProjectCategory[] = [
         name: 'Mapr',
         url: 'https://mapr-homepage.vercel.app',
         description: 'An innovative project management tool designed for tradesmen, offering a unique map-based interface for iOS, macOS, and visionOS users. Developed by Vegar Berentsen, Mapr allows users to visualize the geographical distribution of their ongoing projects, manage contacts, track time, and more.',
-        image: MaprLogo,
+        image: MaprLogo, // Explicitly assign the Mapr logo
       },
       {
         name: 'QRHue',
         url: 'https://apps.apple.com/no/app/qrhue/id6746092245',
         description: 'Create stunning QR codes with ease using QRHue! Unleash your creativity with vibrant colors, transforming any link, text, or URL into a custom QR code in just a few taps. Enjoy vivid customization with a spectrum of foreground and background colors, toggle between rounded or square shapes, and fine-tune corner radius. With an intuitive interface, export and share QR codes with a transparent background. Save and revisit designs with a sleek history feature, perfect for sharing websites, contact info, or special messages in style.',
-        image: QRHueLogo,
+        image: QRHueLogo, // Assign the QRHue logo
       },
       {
-        name: 'TextClip',
+        name: 'TextClip', // Assuming this is the app that uses Textsnap.png
         url: 'https://apps.apple.com/no/app/textclip/id6746357735?mt=12',
-        description: 'A powerful Mac OCR app that effortlessly extracts text from images, PDFs, websites, or videos. TextClip’s intuitive interface allows users to select screen regions for instant text recognition, copying results to the clipboard for use in any macOS app. Operating offline for privacy, it requires no special skills, making it ideal for students, professionals, and anyone needing fast, secure text extraction.',
-        image: TextSnapLogo,
+        description: 'A powerful Mac OCR app that effortlessly extracts text from images, PDFs, websites, or videos. TextClip&apos;s intuitive interface allows users to select screen regions for instant text recognition, copying results to the clipboard for use in any macOS app. Operating offline for privacy, it requires no special skills, making it ideal for students, professionals, and anyone needing fast, secure text extraction.',
+        image: TextSnapLogo, // Assign the TextSnap logo
       },
     ],
   },
@@ -60,7 +61,7 @@ const projectCategories: ProjectCategory[] = [
       {
         name: 'BærumKart',
         url: 'https://baerumkart.vercel.app',
-        description: 'Inspired by UT.no, BærumKart is a digital mapping platform tailored for the Bærum region. It offers detailed maps and guides for outdoor activities, including hiking trails, cultural landmarks, and community events, encouraging residents and visitors to explore Bærum’s natural beauty and local attractions.',
+        description: 'Inspired by UT.no, BærumKart is a digital mapping platform tailored for the Bærum region. It offers detailed maps and guides for outdoor activities, including hiking trails, cultural landmarks, and community events, encouraging residents and visitors to explore Bærum&apos;s natural beauty and local attractions.',
       },
     ],
   },
@@ -81,12 +82,12 @@ const projectCategories: ProjectCategory[] = [
       {
         name: 'Composition',
         url: 'https://composition-nu.vercel.app',
-        description: 'Master graphic design with Composition, perfect for Studio 51’s animation workshops. Explore Figma for prototyping visuals.',
+        description: 'Master graphic design with Composition, perfect for Studio 51&apos;s animation workshops. Explore Figma for prototyping visuals.',
       },
       {
         name: 'Layer',
         url: 'https://layer-eight.vercel.app',
-        description: 'Learn web design basics with Layer, tailored for Studio 51’s digital projects. Use VSCode, Next.js, and Styled Components to build creative tools.',
+        description: 'Learn web design basics with Layer, tailored for Studio 51&apos;s digital projects. Use VSCode, Next.js, and Styled Components to build creative tools.',
       },
     ],
   },
@@ -106,7 +107,7 @@ const projectCategories: ProjectCategory[] = [
       },
       {
         name: 'Designr.pro',
-        url: 'https://designrpro.vercel.app',
+        url: 'https://designr.pro',
         description: 'The personal brand homepage and CV of a professional designer, showcasing various design projects, work philosophy, and professional experience.',
       },
       {
@@ -178,6 +179,7 @@ const projectCategories: ProjectCategory[] = [
 
 const allProjects: ProjectItem[] = projectCategories.flatMap(category => category.projects);
 
+
 // Styled components
 const ScrollContainer = styled.div`
   padding: 50px;
@@ -239,11 +241,10 @@ const ProjectCard = styled.a`
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* Removed padding from ProjectCard to allow media to go edge-to-edge */
   text-decoration: none;
   width: 100%;
   max-width: 400px;
-  overflow: hidden; /* Ensure content respects border-radius */
+  overflow: hidden;
   transition: transform 0.2s, box-shadow 0.2s;
 
   &:hover {
@@ -254,35 +255,37 @@ const ProjectCard = styled.a`
 
 const ProjectMediaContainer = styled.div`
   width: 100%;
-  height: 300px; /* Fixed height for consistency */
-  border-top-left-radius: 10px; /* Match card radius for top corners */
-  border-top-right-radius: 10px; /* Match card radius for top corners */
-  overflow: hidden; /* Clip content within the border-radius */
-  margin-bottom: 0px; /* Remove margin, content will handle spacing */
+  height: 300px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 0px;
 `;
 
 const ProjectPreview = styled.iframe`
   width: 100%;
-  height: 100%; /* Fill the container */
+  height: 100%;
   border: none;
   background-color: #fff;
-  display: block; /* Remove extra space below iframe */
+  display: block;
 `;
 
 const ProjectImage = styled.img`
-  width: 100%; /* Fill the container */
-  height: 100%; /* Fill the container */
-  object-fit: cover; /* Cover the area, cropping if necessary */
-  display: block; /* Remove extra space below image */
+  width: 100%;
+  height: 100%;
+  /* Reverted object-fit to 'cover' to allow stretching */
+  object-fit: cover; /* Allows stretching, fills container */
+  display: block;
+  background-color: #f0f0f0;
 `;
 
 const ProjectContent = styled.div`
-  padding: 20px; /* Apply padding to the text content */
+  padding: 20px;
   width: 100%;
-  box-sizing: border-box; /* Include padding in width calculation */
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center text content */
+  align-items: center;
 `;
 
 const ProjectTitle = styled.h2`
