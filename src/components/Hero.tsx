@@ -137,7 +137,7 @@ function Hero() {
         <SwiperImage src={tikisunwide} alt="Background 1" />
 
         <CompanySliderSection>
-          <CompanySliderTitle>Collaborators</CompanySliderTitle>
+          <CompanySliderTitle>Projects</CompanySliderTitle>
 
           <SliderWrapper>
             <CompanySlider {...settings}>
