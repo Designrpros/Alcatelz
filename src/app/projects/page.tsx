@@ -24,6 +24,7 @@ interface ProjectCategory {
 }
 
 // All project categories with updated data and new image assignments
+// All apostrophes (') have been escaped with &apos;
 const projectCategories: ProjectCategory[] = [
   {
     name: 'Mobile Apps',
@@ -113,7 +114,7 @@ const projectCategories: ProjectCategory[] = [
       {
         name: 'Alcatelz',
         url: 'https://www.alcatelz.com/',
-        description: 'A personal portfolio page displaying various projects and outlining the creator’s work philosophy.',
+        description: 'A personal portfolio page displaying various projects and outlining the creator&apos;s work philosophy.',
       },
     ],
   },
@@ -150,7 +151,7 @@ const projectCategories: ProjectCategory[] = [
       {
         name: 'Bærum Bygg Fornyelse',
         url: 'https://www.baerumbyggfornyelse.no/',
-        description: 'A construction and renovation company based in Bærum, specializing in building renewal projects. This was one of the developer’s first external projects.',
+        description: 'A construction and renovation company based in Bærum, specializing in building renewal projects. This was one of the developer&apos;s first external projects.',
       },
     ],
   },
@@ -171,7 +172,7 @@ const projectCategories: ProjectCategory[] = [
       {
         name: 'Sandvika Platemesse',
         url: 'https://sandvikaplatemesse.no',
-        description: 'A vibrant vinyl record fair held on May 10-11 at Kadettangen 18, featuring music, culture, and community spirit. Organized by Høl i CV’en, it offers live performances by artists like LIORA, a fresh tea stand, and an afterparty, creating a nostalgic and engaging local experience.'
+        description: 'A vibrant vinyl record fair held on May 10-11 at Kadettangen 18, featuring music, culture, and community spirit. Organized by Høl i CV&apos;en, it offers live performances by artists like LIORA, a fresh tea stand, and an afterparty, creating a nostalgic and engaging local experience.'
       },
     ],
   },
@@ -273,7 +274,6 @@ const ProjectPreview = styled.iframe`
 const ProjectImage = styled.img`
   width: 100%;
   height: 100%;
-  /* Reverted object-fit to 'cover' to allow stretching */
   object-fit: cover; /* Allows stretching, fills container */
   display: block;
   background-color: #f0f0f0;

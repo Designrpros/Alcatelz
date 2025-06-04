@@ -1,7 +1,7 @@
 // src/components/Hero.tsx
 "use client"; // Mark as client component
 
-import React, { useEffect } from "react";
+import React from "react"; // Removed 'useEffect' from import
 import styled from "styled-components";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -23,51 +23,50 @@ const companies: string[] = [
 // Styled components
 const HeroContainer = styled.div`
   position: relative;
-  height: 100vh; /* Set the height to 100vh */
+  height: 100vh;
   width: 100%;
   display: flex;
-  flex-direction: column; /* Stack the image and slider vertically */
+  flex-direction: column;
   overflow: hidden;
-  /* REMOVED: padding-top: 60px; - This was causing the white gap */
   box-sizing: border-box; /* Ensure padding is included in the height calculation */
 `;
 
 const SwiperImage = styled.img`
   width: 100%;
-  height: 70vh; /* Hero image takes 70% of the height */
+  height: 70vh;
   object-fit: cover;
 `;
 
 const CompanySliderSection = styled.div`
   background-color: #333;
-  height: 30vh; /* Increased height to give more room */
+  height: 30vh;
   display: flex;
-  flex-direction: column; /* Stack title and slider vertically */
-  justify-content: flex-start; /* Align content to top */
+  flex-direction: column;
+  justify-content: flex-start;
   padding: 0 10px;
   overflow: hidden;
   position: relative;
-  flex-grow: 1; /* Allow this section to grow and fill available space */
+  flex-grow: 1;
 `;
 
 const CompanySliderTitle = styled.h2`
   text-align: center;
-  font-size: 36px; /* Title font size */
-  color: #fff; /* Title color */
+  font-size: 36px;
+  color: #fff;
   font-weight: bold;
-  position: absolute; /* Position the title absolutely */
-  top: 10px; /* Title stays at the top of the section */
+  position: absolute;
+  top: 10px;
   left: 50%;
-  transform: translateX(-50%); /* Center it horizontally */
+  transform: translateX(-50%);
 `;
 
 const SliderWrapper = styled.div`
   display: flex;
-  flex: 1; /* Take up remaining space */
+  flex: 1;
   width: 100%;
   align-items: center;
   justify-content: center;
-  margin-top: 100px; /* Add space between title and slider */
+  margin-top: 100px;
 `;
 
 const CompanyCard = styled.div`
@@ -93,7 +92,7 @@ const CompanySlider = styled(Slider)`
   }
 
   .slick-track {
-    display: flex; /* Ensures that items are placed in a row */
+    display: flex;
   }
 
   .slick-slide > div {
@@ -105,14 +104,14 @@ const CompanySlider = styled(Slider)`
 
 const FooterText = styled.div`
   position: absolute;
-  bottom: 20px; /* Position the footer text at the bottom of the page */
-  left: 0; /* Ensure it spans the full width */
+  bottom: 20px;
+  left: 0;
   width: 100%;
   text-align: center;
   font-size: 18px;
   color: #fff;
   font-weight: bold;
-  z-index: 10; /* Ensure it's above other content if overlapping */
+  z-index: 10;
 `;
 
 function Hero() {
@@ -131,13 +130,6 @@ function Hero() {
       { breakpoint: 480, settings: { slidesToShow: 1, slidesToScroll: 1 } },
     ],
   };
-
-  React.useEffect(() => {
-    document.body.style.overflowX = "hidden";
-    return () => {
-      document.body.style.overflowX = "auto"; // Cleanup when component unmounts
-    };
-  }, []);
 
   return (
     <>
