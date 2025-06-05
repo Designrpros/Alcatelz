@@ -1,32 +1,18 @@
-// src/components/Navbar.tsx
-"use client"; // This component uses client-side features (Link, styled-components)
+"use client";
 
 import React from 'react';
 import styled from 'styled-components';
 import Link from 'next/link';
 
-// ---
-// Analytics setup
-// ---
+// Import the global type definition for GA4 event parameters
+import { GtagEventParams } from '../types/global'; // Adjust path based on your project structure
 
-// Declare gtag on the Window interface for TypeScript.
-// For larger projects, this should ideally be in a global declaration file (e.g., `src/types/global.d.ts`).
-declare global {
-  interface Window {
-    gtag?: (...args: any[]) => void;
-  }
-}
-
-// Helper function to safely send GA4 events.
-const sendGaEvent = (eventName: string, eventParams: Record<string, any>) => {
+// Helper function to safely send GA4 events
+const sendGaEvent = (eventName: string, eventParams: GtagEventParams) => {
   if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('event', eventName, eventParams);
   }
 };
-
-// ---
-// Styled Components for the toolbar and tabs (no changes here)
-// ---
 
 const Toolbar = styled.div`
   background-color: #333;
@@ -57,24 +43,18 @@ const StyledLink = styled(Link)`
   text-decoration: none;
 `;
 
-// ---
-// Navbar Component with Analytics
-// ---
-
 const Navbar: React.FC = () => {
-  // Function to handle the click and send the GA4 event
   const handleTabClick = (linkName: string, linkPath: string) => {
-    sendGaEvent('alcatelz_nav_click', { // Custom event name for this project's navbar
-      link_text: linkName,              // Text of the link, e.g., "Alcatelz"
-      link_url: linkPath,               // Destination URL of the link
-      navigation_location: 'alcatelz_toolbar', // Specific context for this toolbar
+    sendGaEvent('alcatelz_nav_click', {
+      link_text: linkName,
+      link_url: linkPath,
+      navigation_location: 'alcatelz_toolbar',
     });
   };
 
   return (
     <Toolbar>
       <StyledLink href="/">
-        {/* Add onClick handler to the Tab component */}
         <Tab onClick={() => handleTabClick('Alcatelz (Home)', '/')}>Alcatelz</Tab>
       </StyledLink>
       <StyledLink href="/philosophy">
