@@ -138,7 +138,7 @@ const projectCategories: ProjectCategory[] = [
       {
         name: 'Alcatelz',
         url: 'https://www.alcatelz.com/',
-        description: 'A personal portfolio page displaying various projects and outlining the creator&apos;s work philosophy.',
+        description: 'A personal portfolio page displaying various projects and outlining the creator work philosophy.',
       },
     ],
   },
@@ -175,7 +175,7 @@ const projectCategories: ProjectCategory[] = [
       {
         name: 'Bærum Bygg Fornyelse',
         url: 'https://www.baerumbyggfornyelse.no/',
-        description: 'A construction and renovation company based in Bærum, specializing in building renewal projects. This was one of the developer&apos;s first external projects.',
+        description: 'A construction and renovation company based in Bærum, specializing in building renewal projects. This was one of the developer first external projects.',
       },
     ],
   },
