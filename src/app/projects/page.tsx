@@ -4,6 +4,30 @@
 import React from "react";
 import styled from "styled-components";
 
+// ---
+// Analytics setup
+// ---
+
+// Declare gtag on the Window interface for TypeScript.
+// (Ensure this `declare global` block is consistent across your project,
+// ideally in a single, dedicated `.d.ts` file like `src/types/global.d.ts` or `next-env.d.ts`).
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
+
+// Helper function to safely send GA4 events.
+const sendGaEvent = (eventName: string, eventParams: Record<string, any>) => {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', eventName, eventParams);
+  }
+};
+
+// ---
+// Project Data & Types (no changes needed here)
+// ---
+
 // For images in the public directory, use direct paths.
 const AvatarImage = "/images/Avatar.jpeg";
 const MaprLogo = "/images/MaprLogo.png";
@@ -181,7 +205,10 @@ const projectCategories: ProjectCategory[] = [
 const allProjects: ProjectItem[] = projectCategories.flatMap(category => category.projects);
 
 
-// Styled components
+// ---
+// Styled components (no changes needed here unless for specific styling requirements)
+// ---
+
 const ScrollContainer = styled.div`
   padding: 50px;
   background-color: #ebdbae;
@@ -300,7 +327,20 @@ const ProjectDescription = styled.p`
   text-align: center;
 `;
 
+// ---
+// ProjectsPage Component with Analytics
+// ---
+
 const ProjectsPage: React.FC = () => {
+  // Function to handle clicks on project cards
+  const handleProjectCardClick = (projectName: string, projectUrl: string) => {
+    sendGaEvent('project_card_click', { // Custom event name for clicks on project cards
+      project_name: projectName,        // Name of the clicked project
+      link_url: projectUrl,             // URL of the project
+      link_location: 'projects_page',   // Context: where the click occurred
+    });
+  };
+
   return (
     <ScrollContainer>
       <AboutMeSection>
@@ -321,6 +361,8 @@ const ProjectsPage: React.FC = () => {
             href={project.url}
             target="_blank"
             rel="noopener noreferrer"
+            // Attach onClick handler to the ProjectCard component
+            onClick={() => handleProjectCardClick(project.name, project.url)}
           >
             <ProjectMediaContainer>
               {project.image ? (
