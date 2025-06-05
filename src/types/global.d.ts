@@ -7,9 +7,8 @@
 // If it still errors, you might need to add `// eslint-disable-next-line @typescript-eslint/no-explicit-any`
 // above this line *in this file only*.
 declare global {
-  interface Window {
-    gtag?: (...args: any[]) => void;
-  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  interface Window { gtag?: (...args: any[]) => void; }
 }
 
 // Define a general interface for your GA4 event parameters.
