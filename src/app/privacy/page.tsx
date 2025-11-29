@@ -12,7 +12,7 @@ export default function PrivacyPage() {
   let analytics = "";
   try {
     analytics = fs.readFileSync(filePath, "utf8");
-  } catch (e) {
+  } catch {
     analytics = "(analytics data not available)";
   }
 
