@@ -456,22 +456,38 @@ export default function HomePage() {
                   />
                   {hashtagSearch.length > 0 && searchResults.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-20 overflow-hidden">
-                      {searchResults.slice(0, 8).map((tag) => (
-                        <button
-                          key={tag.slug}
-                          onClick={() => {
-                            setActiveServer(tag.slug);
-                            setHashtagSearch("");
-                            setShowHashtagSearch(false);
-                          }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center justify-between"
-                        >
-                          <span className="flex items-center gap-2">
-                            <Hash className="w-4 h-4 text-primary" />{tag.slug}
-                          </span>
-                          <span className="text-xs text-muted-foreground">{tag.count} posts</span>
-                        </button>
-                      ))}
+                      {searchResults.length > 0 ? (
+                        searchResults.slice(0, 8).map((tag) => (
+                          <button
+                            key={tag.slug}
+                            onClick={() => {
+                              setActiveServer(tag.slug);
+                              setHashtagSearch("");
+                              setShowHashtagSearch(false);
+                            }}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center justify-between"
+                          >
+                            <span className="flex items-center gap-2">
+                              <Hash className="w-4 h-4 text-primary" />{tag.slug}
+                            </span>
+                            <span className="text-xs text-muted-foreground">{tag.count} posts</span>
+                          </button>
+                        ))
+                      ) : hashtagSearch.length > 1 ? (
+                        <div className="p-3">
+                          <p className="text-sm text-muted-foreground mb-2">No hashtag found for "#{hashtagSearch}"</p>
+                          <button
+                            onClick={() => {
+                              setShowCreateServer(true);
+                              setHashtagSearch("");
+                              setShowHashtagSearch(false);
+                            }}
+                            className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 flex items-center justify-center gap-2"
+                          >
+                            <Plus className="w-4 h-4" /> Create #{hashtagSearch}
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                   )}
                 </div>
