@@ -1,49 +1,49 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+
+type Theme = "dark" | "light";
+
+interface ThemeContextType {
+  theme: Theme;
+  toggle: () => void;
+}
+
+const ThemeContext = createContext<ThemeContextType>({
+  theme: "dark",
+  toggle: () => {},
+});
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<Theme>("dark");
 
-    useEffect(() => {
-        setMounted(true);
-
-        // Apply theme on mount
-        const theme = localStorage.getItem('theme') || 'system';
-        applyTheme(theme);
-
-        // Listen for system theme changes
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        const handleChange = () => {
-            const currentTheme = localStorage.getItem('theme') || 'system';
-            if (currentTheme === 'system') {
-                applyTheme('system');
-            }
-        };
-
-        mediaQuery.addEventListener('change', handleChange);
-        return () => mediaQuery.removeEventListener('change', handleChange);
-    }, []);
-
-    function applyTheme(theme: string) {
-        if (theme === 'system') {
-            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (systemPrefersDark) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-        } else if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
+  useEffect(() => {
+    const stored = localStorage.getItem("alcatelz-theme") as Theme | null;
+    if (stored) {
+      setTheme(stored);
+      document.documentElement.classList.remove("dark", "light");
+      document.documentElement.classList.add(stored);
+    } else {
+      document.documentElement.classList.remove("dark", "light");
+      document.documentElement.classList.add("dark");
     }
+  }, []);
 
-    // Prevent flash of unstyled content
-    if (!mounted) {
-        return <>{children}</>;
-    }
+  const toggle = () => {
+    const next: Theme = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    localStorage.setItem("alcatelz-theme", next);
+    document.documentElement.classList.remove("dark", "light");
+    document.documentElement.classList.add(next);
+  };
 
-    return <>{children}</>;
+  return (
+    <ThemeContext.Provider value={{ theme, toggle }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+export function useTheme() {
+  return useContext(ThemeContext);
 }

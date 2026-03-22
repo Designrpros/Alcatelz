@@ -14,7 +14,10 @@
     "autoprefixer": "^10.4.27",
     "better-auth": "^1.5.5",
     "better-sqlite3": "^12.8.0",
+    "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.1",
+    "express": "^5.2.1",
+    "framer-motion": "^12.38.0",
     "lucide-react": "^0.577.0",
     "nanoid": "^5.1.7",
     "next": "^15.3.3",
@@ -29,7 +32,8 @@
     "styled-components": "^6.1.18",
     "tailwindcss": "^4.2.2",
     "tailwindcss-animate": "^1.0.7",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.0",
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
