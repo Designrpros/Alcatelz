@@ -8,12 +8,11 @@ import {
   ChevronRight,
   ChevronDown,
   Database,
-  FileText,
   Settings,
   Users,
   User,
   Bell,
-  Terminal,
+  Home,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,20 +35,14 @@ export function Sidebar({ className }: SidebarProps) {
     {
       section: "home",
       label: "Home",
-      icon: FileText,
+      icon: Home,
       href: "/",
     },
     {
-      section: "setup",
-      label: "Setup & API",
-      icon: Terminal,
-      href: "/setup",
-    },
-    {
-      section: "explore",
-      label: "Explore",
+      section: "search",
+      label: "Search",
       icon: Search,
-      href: "/explore",
+      href: "/search",
     },
     {
       section: "notifications",

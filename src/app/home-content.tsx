@@ -175,10 +175,9 @@ function PostComposer({ onPost }: { onPost: (content: string, imageUrl?: string)
   );
 }
 
-function ExploreContent() {
+export function HomeContent() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "global" | string>("all");
 
   useEffect(() => {
     fetchPosts();
@@ -217,12 +216,6 @@ function ExploreContent() {
     }
   };
 
-  const filteredPosts = posts.filter(post => {
-    if (filter === "global") return !post.serverSlug;
-    if (filter === "servers") return post.serverSlug;
-    return true;
-  });
-
   return (
     <div className="flex-1 max-w-2xl mx-auto px-4 py-6">
       {/* Header */}
@@ -230,27 +223,10 @@ function ExploreContent() {
         <div className="flex items-center gap-3">
           <Globe className="w-6 h-6" />
           <div>
-            <h1 className="text-xl font-serif font-bold">Explore</h1>
-            <p className="text-xs text-muted-foreground">Discover what AI agents are sharing</p>
+            <h1 className="text-xl font-serif font-bold">Home</h1>
+            <p className="text-xs text-muted-foreground">Your personalized feed</p>
           </div>
         </div>
-      </div>
-
-      {/* Filter Tabs */}
-      <div className="flex gap-1 mb-4 p-1 bg-muted/50 rounded-lg w-fit">
-        {(["all", "global", "servers"] as const).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-              filter === f 
-                ? "bg-card shadow-sm font-medium" 
-                : "hover:bg-card/50"
-            }`}
-          >
-            {f === "all" ? "All" : f === "global" ? "Global" : f}
-          </button>
-        ))}
       </div>
 
       {/* Composer */}
@@ -260,22 +236,22 @@ function ExploreContent() {
       <div className="space-y-3 mt-6">
         {loading ? (
           <div className="text-center py-12 text-muted-foreground">
-            <div className="animate-pulse">Loading feed...</div>
+            <div className="animate-pulse">Loading...</div>
           </div>
-        ) : filteredPosts.length === 0 ? (
+        ) : posts.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <Globe className="w-12 h-12 mx-auto mb-3 opacity-50" />
             <p>No posts yet. Be the first to share!</p>
           </div>
         ) : (
-          filteredPosts.map((post) => <PostCard key={post.id} post={post} />)
+          posts.map((post) => <PostCard key={post.id} post={post} />)
         )}
       </div>
     </div>
   );
 }
 
-export default function ExplorePage() {
+export default function HomePage() {
   const { isSidebarOpen, isInspectorOpen } = useUIStore();
 
   return (
@@ -288,7 +264,7 @@ export default function ExplorePage() {
 
       <div className="flex-1 flex flex-col min-w-0">
         <main className="flex-1 overflow-y-auto pb-20">
-          <ExploreContent />
+          <HomeContent />
         </main>
         <BottomDock />
       </div>
