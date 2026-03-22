@@ -8,7 +8,7 @@ import { Inspector } from "@/components/ui/inspector";
 import { BottomDock } from "@/components/ui/bottom-dock";
 import { CreateServerModal } from "@/components/create-server-modal";
 import { useUIStore } from "@/lib/ui-store";
-import { Bot, Heart, MessageCircle, Image as ImageIcon, Send, Globe, Hash, Upload, LogIn, Plus } from "lucide-react";
+import { Bot, Heart, MessageCircle, Image as ImageIcon, Send, Globe, Hash, Upload, LogIn, Plus, Search as SearchIcon } from "lucide-react";
 
 interface User {
   id: string;
@@ -226,8 +226,9 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [showCreateServer, setShowCreateServer] = useState(false);
+  const [showHashtagSearch, setShowHashtagSearch] = useState(false);
   const [hashtagSearch, setHashtagSearch] = useState("");
-  const [searchResults, setSearchResults] = useState<Server[]>([]);
+  const [searchResults, setSearchResults] = useState<{slug: string; count: number}[]>([]);
   const { isSidebarOpen, isInspectorOpen } = useUIStore();
   const router = useRouter();
 
@@ -397,65 +398,78 @@ export default function HomePage() {
             </div>
 
             {/* Server tabs */}
-            <div className="flex gap-2 mb-4 overflow-x-auto pb-2 items-center">
-              <button
-                onClick={() => setActiveServer('all')}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                  activeServer === 'all'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted hover:bg-muted/80 text-muted-foreground'
-                }`}
-              >
-                All
-              </button>
-              {servers.map((server) => (
+            <div className="mb-4">
+              <div className="flex gap-2 overflow-x-auto pb-2 items-center">
                 <button
-                  key={server.slug}
-                  onClick={() => setActiveServer(server.slug)}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-1 ${
-                    activeServer === server.slug
+                  onClick={() => setShowHashtagSearch(!showHashtagSearch)}
+                  className={`px-2.5 py-1.5 rounded-full text-sm font-medium transition-colors flex-shrink-0 ${
+                    showHashtagSearch ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                  }`}
+                  title="Search hashtags"
+                >
+                  <SearchIcon className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setActiveServer('all')}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                    activeServer === 'all'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted hover:bg-muted/80 text-muted-foreground'
                   }`}
                 >
-                  <Hash className="w-3 h-3" />{server.slug}
+                  All
                 </button>
-              ))}
-              {user && (
-                <button
-                  onClick={() => setShowCreateServer(true)}
-                  className="px-2.5 py-1.5 rounded-full text-sm font-medium bg-muted hover:bg-muted/80 text-muted-foreground transition-colors flex items-center gap-1"
-                  title="Create new server"
-                >
-                  <Plus className="w-3 h-3" />
-                </button>
-              )}
-              {/* Inline hashtag search */}
-              {user && (
-                <div className="relative flex-shrink-0">
+                {servers.map((server) => (
+                  <button
+                    key={server.slug}
+                    onClick={() => setActiveServer(server.slug)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-1 ${
+                      activeServer === server.slug
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                    }`}
+                  >
+                    <Hash className="w-3 h-3" />{server.slug}
+                  </button>
+                ))}
+                {user && (
+                  <button
+                    onClick={() => setShowCreateServer(true)}
+                    className="px-2.5 py-1.5 rounded-full text-sm font-medium bg-muted hover:bg-muted/80 text-muted-foreground transition-colors flex-shrink-0"
+                    title="Create new hashtag"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+              
+              {/* Hashtag search dropdown */}
+              {showHashtagSearch && (
+                <div className="mt-2 relative">
                   <input
                     type="text"
                     value={hashtagSearch}
                     onChange={(e) => setHashtagSearch(e.target.value)}
-                    placeholder="Search #"
-                    className="w-20 px-2 py-1.5 text-xs rounded-full border border-border bg-card outline-none focus:ring-1 focus:ring-primary/50"
+                    placeholder="Search hashtags..."
+                    autoFocus
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-card outline-none focus:ring-2 focus:ring-primary/50"
                   />
-                  {searchResults.length > 0 && (
-                    <div className="absolute top-full left-0 mt-1 w-40 bg-card border border-border rounded-lg shadow-lg z-20 overflow-hidden">
-                      {searchResults.slice(0, 5).map((tag) => (
+                  {hashtagSearch.length > 0 && searchResults.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-20 overflow-hidden">
+                      {searchResults.slice(0, 8).map((tag) => (
                         <button
                           key={tag.slug}
                           onClick={() => {
                             setActiveServer(tag.slug);
                             setHashtagSearch("");
-                            setSearchResults([]);
+                            setShowHashtagSearch(false);
                           }}
                           className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center justify-between"
                         >
-                          <span className="flex items-center gap-1">
-                            <Hash className="w-3 h-3 text-primary" />{tag.slug}
+                          <span className="flex items-center gap-2">
+                            <Hash className="w-4 h-4 text-primary" />{tag.slug}
                           </span>
-                          {('count' in tag && <span className="text-xs text-muted-foreground">{(tag as {count: number}).count}</span>)}
+                          <span className="text-xs text-muted-foreground">{tag.count} posts</span>
                         </button>
                       ))}
                     </div>
