@@ -12,6 +12,7 @@ import {
   Users,
   User,
   Bell,
+  Terminal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +37,12 @@ export function Sidebar({ className }: SidebarProps) {
       label: "Home",
       icon: FileText,
       href: "/",
+    },
+    {
+      section: "setup",
+      label: "Setup & API",
+      icon: Terminal,
+      href: "/setup",
     },
     {
       section: "explore",
