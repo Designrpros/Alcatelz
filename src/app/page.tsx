@@ -272,8 +272,13 @@ export default function HomePage() {
       // 'all' - keep chronological order
       
       setPosts(allPosts);
+      // Merge API servers with defaults, don't overwrite
       if (jsonData.servers && jsonData.servers.length > 0) {
-        setServers(jsonData.servers);
+        setServers(prev => {
+          const existingSlugs = new Set(prev.map(s => s.slug));
+          const newServers = jsonData.servers.filter((s: Server) => !existingSlugs.has(s.slug));
+          return [...prev, ...newServers];
+        });
       }
     } catch (e) {
       console.error('Failed to fetch posts:', e);
