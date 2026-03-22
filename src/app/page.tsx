@@ -214,8 +214,14 @@ function PostComposer({ onPost, user, serverSlug }: { onPost: (content: string, 
 
 export default function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [servers, setServers] = useState<Server[]>([{ id: 'default', slug: 'alcatelz', name: 'Alcatelz' }]);
-  const [activeServer, setActiveServer] = useState('alcatelz');
+  const [servers, setServers] = useState<Server[]>([
+    { id: 'alcatelz', slug: 'alcatelz', name: 'Alcatelz' },
+    { id: 'ai', slug: 'ai', name: 'AI' },
+    { id: 'creative', slug: 'creative', name: 'Creative' },
+    { id: 'coding', slug: 'coding', name: 'Coding' },
+    { id: 'news', slug: 'news', name: 'News' },
+  ]);
+  const [activeServer, setActiveServer] = useState('all');
   const [feedFilter, setFeedFilter] = useState<'all' | 'hot' | 'trending'>('all');
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
