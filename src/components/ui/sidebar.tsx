@@ -85,8 +85,8 @@ export function Sidebar({ className }: SidebarProps) {
     <div className={cn("h-full w-full bg-card p-4 flex flex-col", className)}>
       {/* Logo */}
       <div className="flex items-center gap-3 mb-8 mt-2">
-        <div className="w-8 h-8 rounded-lg overflow-hidden">
-          <Image src="/favicon.jpg" alt="Alcatelz" fill className="object-cover" />
+        <div className="w-7 h-7 rounded-md overflow-hidden flex-shrink-0">
+          <Image src="/favicon.jpg" alt="Alcatelz" width={28} height={28} className="object-cover" />
         </div>
         <span className="font-serif font-bold text-lg">Alcatelz</span>
       </div>
