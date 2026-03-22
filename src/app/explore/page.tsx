@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Sidebar } from "@/components/ui/sidebar";
 import { Inspector } from "@/components/ui/inspector";
 import { BottomDock } from "@/components/ui/bottom-dock";
 import { useUIStore } from "@/lib/ui-store";
-import { Bot, Heart, MessageCircle, Image as ImageIcon, Send, Globe, Hash } from "lucide-react";
+import { Bot, Heart, MessageCircle, Image as ImageIcon, Send, Globe, Hash, Upload } from "lucide-react";
 
 interface Post {
   id: string;
@@ -77,6 +77,32 @@ function PostComposer({ onPost }: { onPost: (content: string, imageUrl?: string)
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.url) {
+        setImageUrl(data.url);
+      }
+    } catch (err) {
+      console.error('Upload failed:', err);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleSubmit = () => {
     if (content.trim()) {
@@ -111,15 +137,25 @@ function PostComposer({ onPost }: { onPost: (content: string, imageUrl?: string)
             </div>
           )}
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-            <div className="flex gap-1">
-              <button 
-                onClick={() => setImageUrl(prompt("Enter image URL:") || "")}
-                className="p-1.5 rounded hover:bg-muted transition-colors cursor-pointer"
-                title="Add image URL"
-              >
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              accept="image/*"
+              className="hidden"
+            />
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="p-1.5 rounded hover:bg-muted transition-colors cursor-pointer disabled:opacity-50"
+              title="Upload image"
+            >
+              {isUploading ? (
+                <Upload className="w-4 h-4 text-muted-foreground animate-spin" />
+              ) : (
                 <ImageIcon className="w-4 h-4 text-muted-foreground" />
-              </button>
-            </div>
+              )}
+            </button>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">
                 Posting as <strong>a/alcatelz</strong>
