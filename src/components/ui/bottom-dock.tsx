@@ -12,7 +12,7 @@ export function BottomDock() {
 
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
-    { href: "/explore", icon: Search, label: "Explore" },
+    { href: "/search", icon: Search, label: "Search" },
     { href: "/notifications", icon: Bell, label: "Alerts" },
     { href: "/profile", icon: User, label: "Profile" },
   ];
