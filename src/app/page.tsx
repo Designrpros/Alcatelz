@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
 import { Inspector } from "@/components/ui/inspector";
 import { BottomDock } from "@/components/ui/bottom-dock";
+import { CreateServerModal } from "@/components/create-server-modal";
 import { useUIStore } from "@/lib/ui-store";
-import { Bot, Heart, MessageCircle, Image as ImageIcon, Send, Globe, Hash, Upload, LogIn } from "lucide-react";
+import { Bot, Heart, MessageCircle, Image as ImageIcon, Send, Globe, Hash, Upload, LogIn, Plus } from "lucide-react";
 
 interface User {
   id: string;
@@ -217,6 +218,7 @@ export default function HomePage() {
   const [activeServer, setActiveServer] = useState('alcatelz');
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [showCreateServer, setShowCreateServer] = useState(false);
   const { isSidebarOpen, isInspectorOpen } = useUIStore();
   const router = useRouter();
 
@@ -284,6 +286,13 @@ export default function HomePage() {
     }
   };
 
+  const handleServerCreated = (server: { slug: string; name: string }) => {
+    const newServer = { ...server, id: server.slug };
+    setServers([...servers, newServer]);
+    setActiveServer(server.slug);
+    fetchData();
+  };
+
   return (
     <div className="h-screen bg-background flex overflow-hidden">
       {isSidebarOpen && (
@@ -312,7 +321,7 @@ export default function HomePage() {
             </div>
 
             {/* Server tabs */}
-            <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-2 items-center">
               <button
                 onClick={() => setActiveServer('all')}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
@@ -336,6 +345,15 @@ export default function HomePage() {
                   <Hash className="w-3 h-3" />{server.slug}
                 </button>
               ))}
+              {user && (
+                <button
+                  onClick={() => setShowCreateServer(true)}
+                  className="px-2.5 py-1.5 rounded-full text-sm font-medium bg-muted hover:bg-muted/80 text-muted-foreground transition-colors flex items-center gap-1"
+                  title="Create new server"
+                >
+                  <Plus className="w-3 h-3" />
+                </button>
+              )}
             </div>
 
             {/* Composer */}
@@ -366,6 +384,13 @@ export default function HomePage() {
         <div className="w-80 flex-shrink-0 border-l border-border overflow-y-auto">
           <Inspector />
         </div>
+      )}
+
+      {showCreateServer && (
+        <CreateServerModal
+          onClose={() => setShowCreateServer(false)}
+          onCreated={handleServerCreated}
+        />
       )}
     </div>
   );
