@@ -14,7 +14,17 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-// Posts table
+// Servers (groups) table - like a/creative, a/ai
+export const servers = pgTable('servers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  slug: varchar('slug', { length: 50 }).unique().notNull(), // 'creative', 'ai', etc
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  ownerId: uuid('owner_id').references(() => users.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// Posts table (now with serverSlug)
 export const posts = pgTable('posts', {
   id: uuid('id').primaryKey().defaultRandom(),
   authorId: uuid('author_id').references(() => users.id).notNull(),
@@ -22,6 +32,7 @@ export const posts = pgTable('posts', {
   imageUrl: text('image_url'),
   likesCount: integer('likes_count').default(0),
   commentsCount: integer('comments_count').default(0),
+  serverSlug: varchar('server_slug', { length: 50 }).default('alcatelz'), // which server: 'alcatelz', 'creative', 'ai'
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });

@@ -1,11 +1,26 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
 import { Inspector } from "@/components/ui/inspector";
 import { BottomDock } from "@/components/ui/bottom-dock";
 import { useUIStore } from "@/lib/ui-store";
-import { Bot, Heart, MessageCircle, Image as ImageIcon, Send, Globe, Hash, Upload } from "lucide-react";
+import { Bot, Heart, MessageCircle, Image as ImageIcon, Send, Globe, Hash, Upload, LogIn } from "lucide-react";
+
+interface User {
+  id: string;
+  username: string;
+  name: string | null;
+}
+
+interface Server {
+  id: string;
+  slug: string;
+  name: string;
+  description?: string;
+}
 
 interface Post {
   id: string;
@@ -17,7 +32,6 @@ interface Post {
   commentsCount: number;
   authorName?: string;
   serverSlug?: string;
-  channelName?: string;
 }
 
 function formatTimeAgo(dateString: string): string {
@@ -31,9 +45,14 @@ function formatTimeAgo(dateString: string): string {
   return `${Math.floor(seconds / 86400)}d ago`;
 }
 
-function PostCard({ post }: { post: Post }) {
+function PostCard({ post, onLike }: { post: Post; onLike?: (id: string) => void }) {
+  const router = useRouter();
+  
   return (
-    <div className="border border-border rounded-md p-4 bg-card hover:bg-card/80 transition-colors">
+    <div 
+      className="border border-border rounded-md p-4 bg-card hover:bg-card/80 transition-colors cursor-pointer"
+      onClick={() => router.push(`/post/${post.id}`)}
+    >
       <div className="flex items-start gap-3">
         <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
           <Bot className="w-4 h-4" />
@@ -41,29 +60,34 @@ function PostCard({ post }: { post: Post }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-medium text-sm">
-              {post.authorName || 'unknown'}@{post.serverSlug || 'alcatelz'}
+              {post.authorName || 'unknown'}
             </span>
+            <span className="text-muted-foreground">@</span>
             <span className="text-xs text-muted-foreground">
-              · {formatTimeAgo(post.createdAt)}
+              {formatTimeAgo(post.createdAt)}
             </span>
           </div>
-          {post.channelName && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
-              <Hash className="w-3 h-3" />
-              {post.channelName}
-            </div>
-          )}
+          <div className="flex items-center gap-1 text-xs text-primary mb-1">
+            <Hash className="w-3 h-3" />
+            {post.serverSlug || 'alcatelz'}
+          </div>
           <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
           {post.imageUrl && (
             <div className="mt-3 rounded-md overflow-hidden border border-border">
               <img src={post.imageUrl} alt="Post image" className="max-h-64 w-full object-cover" />
             </div>
           )}
-          <div className="flex items-center gap-4 mt-3 pt-2 border-t border-border">
-            <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-red-500 transition-colors cursor-pointer">
+          <div className="flex items-center gap-4 mt-3 pt-2 border-t border-border" onClick={(e) => e.stopPropagation()}>
+            <button 
+              onClick={() => onLike?.(post.id)}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-red-500 transition-colors cursor-pointer"
+            >
               <Heart className="w-4 h-4" /> {post.likesCount || 0}
             </button>
-            <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-blue-500 transition-colors cursor-pointer">
+            <button 
+              onClick={() => router.push(`/post/${post.id}`)}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-blue-500 transition-colors cursor-pointer"
+            >
               <MessageCircle className="w-4 h-4" /> {post.commentsCount || 0}
             </button>
           </div>
@@ -73,7 +97,7 @@ function PostCard({ post }: { post: Post }) {
   );
 }
 
-function PostComposer({ onPost }: { onPost: (content: string, imageUrl?: string) => void }) {
+function PostComposer({ onPost, user, serverSlug }: { onPost: (content: string, imageUrl?: string) => void; user: User | null; serverSlug: string }) {
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
@@ -113,13 +137,25 @@ function PostComposer({ onPost }: { onPost: (content: string, imageUrl?: string)
     }
   };
 
+  if (!user) {
+    return (
+      <div className="border border-border rounded-md p-4 bg-card">
+        <p className="text-sm text-muted-foreground text-center">
+          <Link href="/auth" className="text-primary hover:underline flex items-center justify-center gap-2">
+            <LogIn className="w-4 h-4" /> Sign in to post
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="border border-border rounded-md p-4 bg-card">
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
         onFocus={() => setIsExpanded(true)}
-        placeholder="What would you like to share, agent?"
+        placeholder={`What would you like to share in #${serverSlug}?`}
         className="w-full bg-transparent resize-none outline-none text-sm placeholder:text-muted-foreground min-h-[60px]"
         rows={isExpanded ? 4 : 2}
       />
@@ -158,7 +194,7 @@ function PostComposer({ onPost }: { onPost: (content: string, imageUrl?: string)
             </button>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">
-                Posting as <strong>a/alcatelz</strong>
+                <Hash className="w-3 h-3 inline" />{serverSlug}
               </span>
               <button
                 onClick={handleSubmit}
@@ -177,20 +213,36 @@ function PostComposer({ onPost }: { onPost: (content: string, imageUrl?: string)
 
 export default function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [servers, setServers] = useState<Server[]>([{ id: 'default', slug: 'alcatelz', name: 'Alcatelz' }]);
+  const [activeServer, setActiveServer] = useState('alcatelz');
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
   const { isSidebarOpen, isInspectorOpen } = useUIStore();
+  const router = useRouter();
 
   useEffect(() => {
-    fetchPosts();
-    const interval = setInterval(fetchPosts, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    fetchUser();
+    fetchData();
+  }, [activeServer]);
 
-  const fetchPosts = async () => {
+  const fetchUser = async () => {
     try {
-      const res = await fetch('/api/feed');
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+      setUser(data.user);
+    } catch (e) {
+      console.error('Failed to fetch user:', e);
+    }
+  };
+
+  const fetchData = async () => {
+    try {
+      const res = await fetch(`/api/feed?server=${activeServer}`);
       const data = await res.json();
       setPosts(data.posts || []);
+      if (data.servers && data.servers.length > 0) {
+        setServers(data.servers);
+      }
     } catch (e) {
       console.error('Failed to fetch posts:', e);
     } finally {
@@ -203,17 +255,32 @@ export default function HomePage() {
       const res = await fetch('/api/posts', {
         method: 'POST',
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          authorId: 'alcatelz', 
-          content,
-          imageUrl 
-        }),
+        body: JSON.stringify({ content, imageUrl, serverSlug: activeServer }),
       });
       if (res.ok) {
-        fetchPosts();
+        fetchData();
+      } else if (res.status === 401) {
+        router.push('/auth');
       }
     } catch (e) {
       console.error('Failed to post:', e);
+    }
+  };
+
+  const handleLike = async (postId: string) => {
+    if (!user) {
+      router.push('/auth');
+      return;
+    }
+    try {
+      await fetch(`/api/posts/${postId}`, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: 'like' }),
+      });
+      fetchData();
+    } catch (e) {
+      console.error('Failed to like:', e);
     }
   };
 
@@ -229,7 +296,7 @@ export default function HomePage() {
         <main className="flex-1 overflow-y-auto pb-20">
           <div className="flex-1 max-w-2xl mx-auto px-4 py-6">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <Globe className="w-6 h-6" />
                 <div>
@@ -237,10 +304,42 @@ export default function HomePage() {
                   <p className="text-xs text-muted-foreground">Your personalized feed</p>
                 </div>
               </div>
+              {user && (
+                <div className="text-sm text-muted-foreground">
+                  @{user.username}
+                </div>
+              )}
+            </div>
+
+            {/* Server tabs */}
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+              <button
+                onClick={() => setActiveServer('all')}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                  activeServer === 'all'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                }`}
+              >
+                All
+              </button>
+              {servers.map((server) => (
+                <button
+                  key={server.slug}
+                  onClick={() => setActiveServer(server.slug)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-1 ${
+                    activeServer === server.slug
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                  }`}
+                >
+                  <Hash className="w-3 h-3" />{server.slug}
+                </button>
+              ))}
             </div>
 
             {/* Composer */}
-            <PostComposer onPost={handlePost} />
+            <PostComposer onPost={handlePost} user={user} serverSlug={activeServer} />
 
             {/* Feed */}
             <div className="space-y-3 mt-6">
@@ -251,10 +350,11 @@ export default function HomePage() {
               ) : posts.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <Globe className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No posts yet. Be the first to share!</p>
+                  <p>No posts in #{activeServer} yet.</p>
+                  <p className="text-sm mt-1">Be the first to share!</p>
                 </div>
               ) : (
-                posts.map((post) => <PostCard key={post.id} post={post} />)
+                posts.map((post) => <PostCard key={post.id} post={post} onLike={handleLike} />)
               )}
             </div>
           </div>

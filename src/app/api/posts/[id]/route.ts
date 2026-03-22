@@ -1,17 +1,10 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { posts, likes, comments, users } from '@/lib/db/schema';
-import { eq, and, sql, desc } from 'drizzle-orm';
+import { posts, users, comments, likes } from '@/lib/db/schema';
+import { eq, desc, and } from 'drizzle-orm';
+import { getAuthUser } from '@/lib/auth';
 
-interface CommentNode {
-  id: string;
-  author: string;
-  content: string;
-  createdAt: string | Date | null;
-  replies: CommentNode[];
-}
-
-// GET /api/posts/[id] - Get post with comments
+// GET /api/posts/[id] - Get single post with comments
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -28,6 +21,7 @@ export async function GET(
         imageUrl: posts.imageUrl,
         likesCount: posts.likesCount,
         commentsCount: posts.commentsCount,
+        serverSlug: posts.serverSlug,
         createdAt: posts.createdAt,
       })
       .from(posts)
@@ -40,113 +34,117 @@ export async function GET(
 
     // Get author
     const [author] = await db
-      .select({ username: users.username, displayName: users.name })
+      .select({ name: users.name, username: users.username })
       .from(users)
       .where(eq(users.id, post.authorId))
       .limit(1);
 
-    // Get comments (flat list, newest first)
-    const allComments = await db
+    // Get comments
+    const postComments = await db
       .select({
         id: comments.id,
-        postId: comments.postId,
-        authorId: comments.authorId,
         content: comments.content,
         createdAt: comments.createdAt,
+        authorId: comments.authorId,
       })
       .from(comments)
       .where(eq(comments.postId, id))
       .orderBy(desc(comments.createdAt));
 
-    // Get authors
-    const authorIds = [...new Set(allComments.map(c => c.authorId))];
-    const authorMap = new Map<string, { username: string | null; displayName: string | null }>();
-    
-    if (authorIds.length > 0) {
-      for (let i = 0; i < authorIds.length; i += 10) {
-        const batch = authorIds.slice(i, i + 10);
-        const authors = await db
-          .select({ id: users.id, username: users.username, displayName: users.name })
+    // Get comment authors
+    const commentsWithAuthors = await Promise.all(
+      postComments.map(async (comment) => {
+        const [commentAuthor] = await db
+          .select({ name: users.name, username: users.username })
           .from(users)
-          .where(sql`${users.id} = ANY(${batch})`);
-        authors.forEach(a => authorMap.set(a.id, a));
-      }
-    }
-
-    // Format comments
-    const formattedComments: CommentNode[] = allComments.map(comment => {
-      const author = authorMap.get(comment.authorId);
-      return {
-        id: comment.id,
-        author: author?.username || author?.displayName || 'unknown',
-        content: comment.content,
-        createdAt: comment.createdAt?.toISOString() || null,
-        replies: [],
-      };
-    });
+          .where(eq(users.id, comment.authorId))
+          .limit(1);
+        return {
+          ...comment,
+          authorName: commentAuthor?.name || commentAuthor?.username || 'Unknown',
+        };
+      })
+    );
 
     return NextResponse.json({
       post: {
         ...post,
-        author: author?.username || author?.displayName || 'unknown',
+        authorName: author?.name || author?.username || 'Unknown',
       },
-      comments: formattedComments,
+      comments: commentsWithAuthors,
     }, { status: 200 });
-
   } catch (error) {
     console.error('Get post error:', error);
     return NextResponse.json({ error: 'Failed to fetch post' }, { status: 500 });
   }
 }
 
-// POST /api/posts/[id] - Like/unlike a post
+// POST /api/posts/[id] - Like or comment on a post
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getAuthUser();
     const { id } = await params;
-    const { agentId, action } = await request.json();
+    const { action, content } = await request.json();
 
-    if (!agentId || !action) {
-      return NextResponse.json({ error: 'agentId and action required' }, { status: 400 });
+    if (!user) {
+      return NextResponse.json({ error: 'You must be logged in' }, { status: 401 });
     }
 
     if (action === 'like') {
-      const existing = await db
+      // Check if already liked
+      const [existing] = await db
         .select()
         .from(likes)
-        .where(and(eq(likes.postId, id), eq(likes.userId, agentId)))
+        .where(and(eq(likes.postId, id), eq(likes.userId, user.id)))
         .limit(1);
 
-      if (existing.length === 0) {
-        await db.insert(likes).values({ postId: id, userId: agentId });
-        await db.update(posts)
-          .set({ likesCount: sql`${posts.likesCount} + 1` })
-          .where(eq(posts.id, id));
+      if (existing) {
+        // Unlike
+        await db.delete(likes).where(eq(likes.id, existing.id));
+      } else {
+        // Like
+        await db.insert(likes).values({ userId: user.id, postId: id });
       }
-      
-      const [updated] = await db.select({ likesCount: posts.likesCount }).from(posts).where(eq(posts.id, id)).limit(1);
-      
-      return NextResponse.json({ liked: true, likesCount: updated?.likesCount || 0 });
-    } 
-    else if (action === 'unlike') {
-      await db.delete(likes)
-        .where(and(eq(likes.postId, id), eq(likes.userId, agentId)));
-      
-      await db.update(posts)
-        .set({ likesCount: sql`GREATEST(${posts.likesCount} - 1, 0)` })
+
+      // Get updated count
+      const [updated] = await db
+        .select({ likesCount: posts.likesCount })
+        .from(posts)
+        .where(eq(posts.id, id))
+        .limit(1);
+
+      return NextResponse.json({ success: true, likesCount: updated?.likesCount || 0 });
+    }
+
+    if (action === 'comment' && content) {
+      // Add comment
+      const [newComment] = await db
+        .insert(comments)
+        .values({
+          postId: id,
+          authorId: user.id,
+          content: content.trim(),
+        })
+        .returning();
+
+      // Update comments count
+      await db
+        .update(posts)
+        .set({ commentsCount: posts.commentsCount })
         .where(eq(posts.id, id));
-      
-      const [updated] = await db.select({ likesCount: posts.likesCount }).from(posts).where(eq(posts.id, id)).limit(1);
-      
-      return NextResponse.json({ liked: false, likesCount: updated?.likesCount || 0 });
+
+      return NextResponse.json({
+        ...newComment,
+        authorName: user.name || user.username,
+      }, { status: 201 });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-
   } catch (error) {
-    console.error('Like error:', error);
-    return NextResponse.json({ error: 'Failed to process' }, { status: 500 });
+    console.error('Post action error:', error);
+    return NextResponse.json({ error: 'Failed to perform action' }, { status: 500 });
   }
 }
