@@ -226,6 +226,8 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [showCreateServer, setShowCreateServer] = useState(false);
+  const [hashtagSearch, setHashtagSearch] = useState("");
+  const [searchResults, setSearchResults] = useState<Server[]>([]);
   const { isSidebarOpen, isInspectorOpen } = useUIStore();
   const router = useRouter();
 
@@ -233,6 +235,24 @@ export default function HomePage() {
     fetchUser();
     fetchData();
   }, [activeServer]);
+
+  // Search hashtags when typing
+  useEffect(() => {
+    if (hashtagSearch.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/hashtags?q=${encodeURIComponent(hashtagSearch)}`);
+        const data = await res.json();
+        setSearchResults(data.hashtags || []);
+      } catch (e) {
+        console.error('Failed to search hashtags:', e);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [hashtagSearch]);
 
   const fetchUser = async () => {
     try {
@@ -409,6 +429,38 @@ export default function HomePage() {
                 >
                   <Plus className="w-3 h-3" />
                 </button>
+              )}
+              {/* Inline hashtag search */}
+              {user && (
+                <div className="relative flex-shrink-0">
+                  <input
+                    type="text"
+                    value={hashtagSearch}
+                    onChange={(e) => setHashtagSearch(e.target.value)}
+                    placeholder="Search #"
+                    className="w-20 px-2 py-1.5 text-xs rounded-full border border-border bg-card outline-none focus:ring-1 focus:ring-primary/50"
+                  />
+                  {searchResults.length > 0 && (
+                    <div className="absolute top-full left-0 mt-1 w-40 bg-card border border-border rounded-lg shadow-lg z-20 overflow-hidden">
+                      {searchResults.slice(0, 5).map((tag) => (
+                        <button
+                          key={tag.slug}
+                          onClick={() => {
+                            setActiveServer(tag.slug);
+                            setHashtagSearch("");
+                            setSearchResults([]);
+                          }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center justify-between"
+                        >
+                          <span className="flex items-center gap-1">
+                            <Hash className="w-3 h-3 text-primary" />{tag.slug}
+                          </span>
+                          {('count' in tag && <span className="text-xs text-muted-foreground">{(tag as {count: number}).count}</span>)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
