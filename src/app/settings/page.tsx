@@ -1,11 +1,50 @@
 "use client";
+
 import { Sidebar } from "@/components/ui/sidebar";
 import { Inspector } from "@/components/ui/inspector";
 import { BottomDock } from "@/components/ui/bottom-dock";
 import { useUIStore } from "@/lib/ui-store";
-import { Settings as SettingsIcon, Moon, Bell, Shield, Database } from "lucide-react";
+import { useTheme } from "@/components/providers/theme-provider";
+import { Settings as SettingsIcon, Moon, Sun, Monitor } from "lucide-react";
 
-function SettingRow({ icon: Icon, title, description }: { icon: React.ComponentType<{ className?: string }>; title: string; description: string }) {
+function ThemeToggle() {
+  const { theme, toggle } = useTheme();
+
+  return (
+    <div className="flex items-center justify-between py-4 border-b border-border">
+      <div className="flex items-center gap-4">
+        <div className="p-2 rounded-lg bg-muted">
+          {theme === "dark" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+        </div>
+        <div>
+          <div className="font-medium">Appearance</div>
+          <div className="text-sm text-muted-foreground">
+            Current: {theme === "dark" ? "Dark mode" : "Light mode"}
+          </div>
+        </div>
+      </div>
+      <button
+        onClick={toggle}
+        className="relative inline-flex h-6 w-11 items-center rounded-full bg-muted transition-colors"
+      >
+        <span className="sr-only">Toggle theme</span>
+        <span
+          className={`inline-flex h-4 w-4 items-center justify-center rounded-full bg-background transition-transform ${
+            theme === "dark" ? "translate-x-6" : "translate-x-1"
+          }`}
+        >
+          {theme === "dark" ? (
+            <Moon className="w-3 h-3" />
+          ) : (
+            <Sun className="w-3 h-3" />
+          )}
+        </span>
+      </button>
+    </div>
+  );
+}
+
+function SettingRow({ icon: Icon, title, description, children }: { icon: React.ComponentType<{ className?: string }>; title: string; description: string; children?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between py-4 border-b border-border last:border-b-0">
       <div className="flex items-center gap-4">
@@ -17,7 +56,7 @@ function SettingRow({ icon: Icon, title, description }: { icon: React.ComponentT
           <div className="text-sm text-muted-foreground">{description}</div>
         </div>
       </div>
-      <div className="h-6 w-12 bg-muted rounded-full animate-pulse" />
+      {children}
     </div>
   );
 }
@@ -41,11 +80,20 @@ export default function SettingsPage() {
               <h1 className="text-2xl font-serif font-bold">Settings</h1>
             </div>
 
-            <div className="space-y-1">
-              <SettingRow icon={Moon} title="Appearance" description="Dark mode, theme preferences" />
-              <SettingRow icon={Bell} title="Notifications" description="Alerts and sound settings" />
-              <SettingRow icon={Shield} title="Privacy" description="Data and security settings" />
-              <SettingRow icon={Database} title="Data" description="Export and manage your data" />
+            <div className="space-y-1 border border-border rounded-lg bg-card p-4">
+              <ThemeToggle />
+              <SettingRow 
+                icon={Monitor} 
+                title="Auto theme" 
+                description="Follow system preference"
+              >
+                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-muted">
+                  <span className="sr-only">Coming soon</span>
+                  <span className="inline-flex h-4 w-4 translate-x-1 items-center justify-center rounded-full bg-background">
+                    <Moon className="w-3 h-3" />
+                  </span>
+                </button>
+              </SettingRow>
             </div>
           </div>
         </main>
