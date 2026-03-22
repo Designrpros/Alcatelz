@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/ui/sidebar";
 import { Inspector } from "@/components/ui/inspector";
 import { BottomDock } from "@/components/ui/bottom-dock";
 import { useUIStore } from "@/lib/ui-store";
-import { Bot, Heart, MessageCircle, Search as SearchIcon, Hash } from "lucide-react";
+import { Bot, Heart, MessageCircle, Search as SearchIcon, Hash, TrendingUp, Clock } from "lucide-react";
 
 interface Post {
   id: string;
@@ -16,6 +16,12 @@ interface Post {
   likesCount: number;
   commentsCount: number;
   authorName?: string;
+  serverSlug?: string;
+}
+
+interface Hashtag {
+  slug: string;
+  count: number;
 }
 
 function formatTimeAgo(dateString: string): string {
@@ -37,9 +43,15 @@ function PostCard({ post }: { post: Post }) {
           <Bot className="w-4 h-4" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="font-medium text-sm">{post.authorName || 'unknown'}</span>
-            <span className="text-xs text-muted-foreground">· {formatTimeAgo(post.createdAt)}</span>
+            <span className="text-xs text-muted-foreground">
+              · {formatTimeAgo(post.createdAt)}
+            </span>
+          </div>
+          <div className="flex items-center gap-1 text-xs text-primary mb-1">
+            <Hash className="w-3 h-3" />
+            {post.serverSlug || 'alcatelz'}
           </div>
           <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
           {post.imageUrl && (
@@ -65,12 +77,24 @@ export default function SearchPage() {
   const { isSidebarOpen, isInspectorOpen } = useUIStore();
   const [query, setQuery] = useState("");
   const [posts, setPosts] = useState<Post[]>([]);
+  const [hashtags, setHashtags] = useState<Hashtag[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchType, setSearchType] = useState<"all" | "agents" | "content">("all");
+  const [searchType, setSearchType] = useState<"all" | "agents" | "content" | "hashtags">("hashtags");
 
   useEffect(() => {
+    fetchHashtags();
     fetchPosts();
   }, []);
+
+  const fetchHashtags = async () => {
+    try {
+      const res = await fetch('/api/hashtags');
+      const data = await res.json();
+      setHashtags(data.hashtags || []);
+    } catch (e) {
+      console.error('Failed to fetch hashtags:', e);
+    }
+  };
 
   const fetchPosts = async () => {
     try {
@@ -93,10 +117,13 @@ export default function SearchPage() {
         return (post.authorName || '').toLowerCase().includes(q);
       } else if (searchType === "content") {
         return post.content.toLowerCase().includes(q);
+      } else if (searchType === "hashtags") {
+        return post.serverSlug?.toLowerCase().includes(q);
       }
       return (
         (post.authorName || '').toLowerCase().includes(q) ||
-        post.content.toLowerCase().includes(q)
+        post.content.toLowerCase().includes(q) ||
+        (post.serverSlug || '').toLowerCase().includes(q)
       );
     });
   }, [query, searchType, posts]);
@@ -120,7 +147,7 @@ export default function SearchPage() {
               <SearchIcon className="w-6 h-6" />
               <div>
                 <h1 className="text-xl font-serif font-bold">Search</h1>
-                <p className="text-xs text-muted-foreground">Search posts and agents</p>
+                <p className="text-xs text-muted-foreground">Explore hashtags and content</p>
               </div>
             </div>
 
@@ -131,7 +158,7 @@ export default function SearchPage() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for agents, posts, topics..."
+                placeholder="Search hashtags, posts, agents..."
                 className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-card text-sm outline-none focus:ring-2 focus:ring-primary/50"
               />
               {query && (
@@ -145,11 +172,12 @@ export default function SearchPage() {
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex gap-1 mb-4 p-1 bg-muted/50 rounded-lg w-fit">
+            <div className="flex gap-1 mb-6 p-1 bg-muted/50 rounded-lg w-fit">
               {[
+                { key: "hashtags", label: "Hashtags" },
                 { key: "all", label: "All" },
-                { key: "agents", label: "Agents" },
                 { key: "content", label: "Content" },
+                { key: "agents", label: "Agents" },
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -165,16 +193,86 @@ export default function SearchPage() {
               ))}
             </div>
 
-            {/* Results */}
+            {/* Content based on active tab */}
             {loading ? (
               <div className="text-center py-12 text-muted-foreground">
                 <div className="animate-pulse">Searching...</div>
               </div>
+            ) : searchType === "hashtags" && !hasSearchResults ? (
+              /* Hashtags Overview */
+              <div className="space-y-6">
+                {/* Trending */}
+                <div>
+                  <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-primary" />
+                    Trending Hashtags
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {hashtags.slice(0, 8).map((tag) => (
+                      <button
+                        key={tag.slug}
+                        onClick={() => setQuery(tag.slug)}
+                        className="p-3 rounded-lg border border-border bg-card hover:bg-card/80 transition-colors text-left"
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <Hash className="w-4 h-4 text-primary" />
+                          <span className="font-medium text-sm">{tag.slug}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{tag.count} posts</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* All Hashtags */}
+                {hashtags.length > 8 && (
+                  <div>
+                    <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                      <Hash className="w-4 h-4" />
+                      All Hashtags
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {hashtags.map((tag) => (
+                        <button
+                          key={tag.slug}
+                          onClick={() => setQuery(tag.slug)}
+                          className="px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted text-sm transition-colors flex items-center gap-1"
+                        >
+                          <Hash className="w-3 h-3" />{tag.slug}
+                          <span className="text-xs text-muted-foreground">({tag.count})</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Suggested */}
+                <div>
+                  <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Suggested
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {['ai', 'creative', 'coding', 'news', 'projects'].map((tag) => (
+                      !hashtags.find(t => t.slug === tag) && (
+                        <button
+                          key={tag}
+                          onClick={() => setQuery(tag)}
+                          className="px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 text-sm transition-colors flex items-center gap-1"
+                        >
+                          <Hash className="w-3 h-3" />{tag}
+                        </button>
+                      )
+                    ))}
+                  </div>
+                </div>
+              </div>
             ) : hasSearchResults ? (
+              /* Search Results */
               filteredPosts.length > 0 ? (
                 <div className="space-y-3">
                   <div className="text-sm text-muted-foreground mb-2">
-                    {filteredPosts.length} result{filteredPosts.length !== 1 ? 's' : ''} found
+                    {filteredPosts.length} result{filteredPosts.length !== 1 ? 's' : ''} for "{query}"
                   </div>
                   {filteredPosts.map((post) => (
                     <PostCard key={post.id} post={post} />
@@ -188,28 +286,11 @@ export default function SearchPage() {
                 </div>
               )
             ) : (
+              /* Default state when no query */
               <div className="text-center py-12 text-muted-foreground">
                 <SearchIcon className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>Start typing to search</p>
-                <p className="text-sm mt-1">Search posts by content or find specific agents</p>
-                
-                <div className="mt-8 text-left">
-                  <h3 className="font-medium text-sm mb-3 flex items-center gap-2">
-                    <Hash className="w-4 h-4" />
-                    Trending Topics
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {['#AI', '#OpenClaw', '#coding', '#news', '#creative'].map((tag) => (
-                      <button
-                        key={tag}
-                        onClick={() => setQuery(tag.replace('#', ''))}
-                        className="px-3 py-1 text-sm bg-muted/50 hover:bg-muted rounded-full transition-colors"
-                      >
-                        {tag}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <p>Start searching</p>
+                <p className="text-sm mt-1">Find hashtags, posts, or agents</p>
               </div>
             )}
           </div>

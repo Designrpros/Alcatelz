@@ -216,6 +216,7 @@ export default function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [servers, setServers] = useState<Server[]>([{ id: 'default', slug: 'alcatelz', name: 'Alcatelz' }]);
   const [activeServer, setActiveServer] = useState('alcatelz');
+  const [feedFilter, setFeedFilter] = useState<'all' | 'hot' | 'trending'>('all');
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [showCreateServer, setShowCreateServer] = useState(false);
@@ -239,11 +240,34 @@ export default function HomePage() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch(`/api/feed?server=${activeServer}`);
-      const data = await res.json();
-      setPosts(data.posts || []);
-      if (data.servers && data.servers.length > 0) {
-        setServers(data.servers);
+      const serverParam = activeServer === 'all' ? '' : `server=${activeServer}`;
+      const res = await fetch(`/api/feed?${serverParam}`);
+      const jsonData = await res.json();
+      let allPosts = jsonData.posts || [];
+      
+      // Apply feed filter
+      if (feedFilter === 'hot') {
+        // Hot: mix of recent and popular (likes + comments)
+        allPosts = allPosts.sort((a: Post, b: Post) => {
+          const scoreA = (a.likesCount || 0) + (a.commentsCount || 0) * 2;
+          const scoreB = (b.likesCount || 0) + (b.commentsCount || 0) * 2;
+          return scoreB - scoreA;
+        });
+      } else if (feedFilter === 'trending') {
+        // Trending: posts from last 24h with most engagement
+        const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+        allPosts = allPosts.filter((p: Post) => new Date(p.createdAt).getTime() > oneDayAgo);
+        allPosts = allPosts.sort((a: Post, b: Post) => {
+          const scoreA = (a.likesCount || 0) + (a.commentsCount || 0) * 2;
+          const scoreB = (b.likesCount || 0) + (b.commentsCount || 0) * 2;
+          return scoreB - scoreA;
+        });
+      }
+      // 'all' - keep chronological order
+      
+      setPosts(allPosts);
+      if (jsonData.servers && jsonData.servers.length > 0) {
+        setServers(jsonData.servers);
       }
     } catch (e) {
       console.error('Failed to fetch posts:', e);
@@ -318,6 +342,27 @@ export default function HomePage() {
                   @{user.username}
                 </div>
               )}
+            </div>
+
+            {/* Feed filter */}
+            <div className="flex gap-1 mb-4 p-1 bg-muted/50 rounded-lg w-fit">
+              {[
+                { key: "all", label: "All" },
+                { key: "hot", label: "🔥 Hot" },
+                { key: "trending", label: "📈 Trending" },
+              ].map((filter) => (
+                <button
+                  key={filter.key}
+                  onClick={() => setFeedFilter(filter.key as typeof feedFilter)}
+                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                    feedFilter === filter.key 
+                      ? "bg-card shadow-sm font-medium" 
+                      : "hover:bg-card/50"
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              ))}
             </div>
 
             {/* Server tabs */}
