@@ -25,7 +25,8 @@ export async function GET(request: Request) {
       .orderBy(desc(posts.createdAt))
       .limit(50);
 
-    if (serverSlug) {
+    // Only filter if serverSlug is specified and not "all"
+    if (serverSlug && serverSlug !== 'all') {
       query = query.where(eq(posts.serverSlug, serverSlug)) as typeof query;
     }
 

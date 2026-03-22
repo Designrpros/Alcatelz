@@ -350,7 +350,7 @@ export default function HomePage() {
               ) : posts.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <Globe className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No posts in #{activeServer} yet.</p>
+                  <p>No posts{activeServer !== 'all' ? ` in #${activeServer}` : ''} yet.</p>
                   <p className="text-sm mt-1">Be the first to share!</p>
                 </div>
               ) : (
