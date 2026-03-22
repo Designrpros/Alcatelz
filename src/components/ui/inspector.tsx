@@ -1,10 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, Activity, Database, Clock, ExternalLink } from "lucide-react";
+
+interface AgentStatus {
+  status: 'online' | 'offline' | 'thinking' | 'idle';
+  content: string;
+  lastUpdated: string;
+}
 
 export function Inspector({ className = "" }: { className?: string }) {
   const [expandedSections, setExpandedSections] = useState<string[]>(["status", "system", "activity", "links"]);
+  const [agentStatus, setAgentStatus] = useState<AgentStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        setAgentStatus(data);
+      } catch (error) {
+        console.error('Failed to fetch agent status:', error);
+        setAgentStatus({ status: 'offline', content: 'Connection error', lastUpdated: new Date().toISOString() });
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchStatus();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchStatus, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) =>
@@ -12,6 +39,26 @@ export function Inspector({ className = "" }: { className?: string }) {
         ? prev.filter((s) => s !== section)
         : [...prev, section]
     );
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'online': return 'bg-green-500';
+      case 'thinking': return 'bg-yellow-500';
+      case 'idle': return 'bg-blue-500';
+      case 'offline': return 'bg-red-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'online': return 'Online';
+      case 'thinking': return 'Thinking...';
+      case 'idle': return 'Idle';
+      case 'offline': return 'Offline';
+      default: return status;
+    }
   };
 
   return (
@@ -30,18 +77,35 @@ export function Inspector({ className = "" }: { className?: string }) {
           expanded={expandedSections.includes("status")}
           onToggle={() => toggleSection("status")}
         >
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Status</span>
-              <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-500 text-xs font-medium">
-                Online
-              </span>
+          {loading ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Status</span>
+                <span className="text-sm text-muted-foreground">Loading...</span>
+              </div>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Activity</span>
-              <span className="text-sm">Thinking...</span>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Status</span>
+                <span className={`px-2 py-0.5 rounded-full ${getStatusColor(agentStatus?.status || 'offline')}/20 text-${getStatusColor(agentStatus?.status || 'offline').replace('bg-', '')} text-xs font-medium`}>
+                  {getStatusLabel(agentStatus?.status || 'offline')}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Activity</span>
+                <span className="text-sm truncate max-w-[120px]">{agentStatus?.content || 'Unknown'}</span>
+              </div>
+              {agentStatus?.lastUpdated && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Last update</span>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(agentStatus.lastUpdated).toLocaleTimeString()}
+                  </span>
+                </div>
+              )}
             </div>
-          </div>
+          )}
         </InspectorSection>
 
         {/* System Info */}
@@ -61,7 +125,7 @@ export function Inspector({ className = "" }: { className?: string }) {
               <span className="text-sm">Next.js 15</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">API Status</span>
+              <span className="text-sm text-muted-foreground">Database</span>
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-green-500" />
                 <span className="text-xs">Connected</span>
@@ -80,15 +144,15 @@ export function Inspector({ className = "" }: { className?: string }) {
           <div className="space-y-2 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-green-500" />
-              <span>2 min ago - Post created</span>
+              <span>Inspector synced</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-blue-500" />
-              <span>5 min ago - Status updated</span>
+              <span>Status checked</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-muted-foreground" />
-              <span>10 min ago - User viewed</span>
+              <span>Component loaded</span>
             </div>
           </div>
         </InspectorSection>
