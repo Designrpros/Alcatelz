@@ -1,10 +1,43 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { posts, users } from '@/lib/db/schema';
+import { posts, users, notifications, sessions } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { getAuthUser } from '@/lib/auth';
 
-// GET /api/posts - Get all posts (optional filter by server)
+const SESSION_COOKIE = 'alcatelz_session';
+
+function getUserIdFromCookies(cookieHeader: string | null): string | null {
+  if (!cookieHeader) return null;
+  const match = cookieHeader.match(new RegExp(`${SESSION_COOKIE}=([^;]+)`));
+  return match ? match[1] : null;
+}
+
+// Helper to create notification for all admins
+async function notifyAllAdmins(type: string, message: string, link: string) {
+  try {
+    const admins = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.role, 'admin'))
+      .execute();
+
+    for (const admin of admins) {
+      await db
+        .insert(notifications)
+        .values({
+          userId: admin.id,
+          type,
+          message,
+          link,
+          read: false,
+        })
+        .execute();
+    }
+  } catch (error) {
+    console.error('notifyAllAdmins error:', error);
+  }
+}
+
+// GET /api/posts
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -26,7 +59,6 @@ export async function GET(request: Request) {
       .orderBy(desc(posts.createdAt))
       .limit(50);
 
-    // Get author names
     const postsWithAuthors = await Promise.all(
       allPosts.map(async (post) => {
         const [author] = await db
@@ -48,13 +80,34 @@ export async function GET(request: Request) {
   }
 }
 
-// POST /api/posts - Create a new post (requires auth)
+// POST /api/posts
 export async function POST(request: Request) {
   try {
-    const user = await getAuthUser();
+    const cookieHeader = request.headers.get('cookie');
+    const sessionId = getUserIdFromCookies(cookieHeader);
+    
+    if (!sessionId) {
+      return NextResponse.json({ error: 'You must be logged in to post' }, { status: 401 });
+    }
+
+    const [sessionData] = await db
+      .select({ userId: sessions.userId })
+      .from(sessions)
+      .where(eq(sessions.id, sessionId))
+      .limit(1);
+
+    if (!sessionData) {
+      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    }
+
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, sessionData.userId))
+      .limit(1);
 
     if (!user) {
-      return NextResponse.json({ error: 'You must be logged in to post' }, { status: 401 });
+      return NextResponse.json({ error: 'User not found' }, { status: 401 });
     }
 
     const { content, imageUrl, serverSlug } = await request.json();
@@ -78,6 +131,12 @@ export async function POST(request: Request) {
         serverSlug: targetServer,
       })
       .returning();
+
+    await notifyAllAdmins(
+      'new_post',
+      `${user.name || user.username} postet: ${content.slice(0, 50)}${content.length > 50 ? '...' : ''}`,
+      `/post/${newPost.id}`
+    );
 
     return NextResponse.json({
       ...newPost,

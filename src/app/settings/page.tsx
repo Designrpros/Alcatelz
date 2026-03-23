@@ -1,68 +1,123 @@
 "use client";
-
+import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/ui/sidebar";
 import { Inspector } from "@/components/ui/inspector";
 import { BottomDock } from "@/components/ui/bottom-dock";
 import { useUIStore } from "@/lib/ui-store";
-import { useTheme } from "@/components/providers/theme-provider";
-import { Settings as SettingsIcon, Moon, Sun, Monitor } from "lucide-react";
+import { Settings, Bell, Moon, Sun, Monitor, User, Mail, FileText, Lock, Bot, Save, Image as ImageIcon } from "lucide-react";
 
-function ThemeToggle() {
-  const { theme, toggle } = useTheme();
-
-  return (
-    <div className="flex items-center justify-between py-4 border-b border-border">
-      <div className="flex items-center gap-4">
-        <div className="p-2 rounded-lg bg-muted">
-          {theme === "dark" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-        </div>
-        <div>
-          <div className="font-medium">Appearance</div>
-          <div className="text-sm text-muted-foreground">
-            Current: {theme === "dark" ? "Dark mode" : "Light mode"}
-          </div>
-        </div>
-      </div>
-      <button
-        onClick={toggle}
-        className="relative inline-flex h-6 w-11 items-center rounded-full bg-muted transition-colors"
-      >
-        <span className="sr-only">Toggle theme</span>
-        <span
-          className={`inline-flex h-4 w-4 items-center justify-center rounded-full bg-background transition-transform ${
-            theme === "dark" ? "translate-x-6" : "translate-x-1"
-          }`}
-        >
-          {theme === "dark" ? (
-            <Moon className="w-3 h-3" />
-          ) : (
-            <Sun className="w-3 h-3" />
-          )}
-        </span>
-      </button>
-    </div>
-  );
+interface Profile {
+  id: string;
+  username: string;
+  name: string | null;
+  email: string | null;
+  bio: string | null;
+  image: string | null;
+  isAgent: boolean;
+  agentStatus: string | null;
 }
 
-function SettingRow({ icon: Icon, title, description, children }: { icon: React.ComponentType<{ className?: string }>; title: string; description: string; children?: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between py-4 border-b border-border last:border-b-0">
-      <div className="flex items-center gap-4">
-        <div className="p-2 rounded-lg bg-muted">
-          <Icon className="w-5 h-5" />
-        </div>
-        <div>
-          <div className="font-medium">{title}</div>
-          <div className="text-sm text-muted-foreground">{description}</div>
-        </div>
-      </div>
-      {children}
-    </div>
-  );
+interface NotificationPrefs {
+  notify_new_user: boolean;
+  notify_new_post: boolean;
+  notify_like: boolean;
+  notify_comment: boolean;
+  notify_follow: boolean;
 }
 
 export default function SettingsPage() {
-  const { isSidebarOpen, isInspectorOpen } = useUIStore();
+  const { isSidebarOpen, isInspectorOpen, theme, setTheme } = useUIStore();
+  
+  // Profile state
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [bio, setBio] = useState("");
+  const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [agentStatus, setAgentStatus] = useState("online");
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState("");
+  
+  // Notification prefs state
+  const [prefs, setPrefs] = useState<NotificationPrefs | null>(null);
+  const [notifLoading, setNotifLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProfile();
+    fetchPreferences();
+  }, []);
+
+  async function fetchProfile() {
+    try {
+      const res = await fetch("/api/profile");
+      if (res.ok) {
+        const data = await res.json();
+        setProfile(data.user);
+        setName(data.user?.name || "");
+        setEmail(data.user?.email || "");
+        setBio(data.user?.bio || "");
+        setAgentStatus(data.user?.agentStatus || "online");
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+    } finally {
+      setProfileLoading(false);
+    }
+  }
+
+  async function fetchPreferences() {
+    try {
+      const res = await fetch("/api/notifications/preferences");
+      if (res.ok) {
+        const data = await res.json();
+        setPrefs(data.preferences);
+      }
+    } catch (error) {
+      console.error("Failed to fetch preferences:", error);
+    } finally {
+      setNotifLoading(false);
+    }
+  }
+
+  async function saveProfile() {
+    setSaving(true);
+    setSaveMsg("");
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, bio, agentStatus, currentPassword: password || undefined, newPassword: newPassword || undefined }),
+      });
+      if (res.ok) {
+        setSaveMsg("Lagret!");
+        setPassword("");
+      } else {
+        setSaveMsg("Feil ved lagring");
+      }
+    } catch (error) {
+      setSaveMsg("Feil ved lagring");
+    } finally {
+      setSaving(false);
+      setTimeout(() => setSaveMsg(""), 3000);
+    }
+  }
+
+  async function updatePreference(key: keyof NotificationPrefs, value: boolean) {
+    try {
+      const res = await fetch("/api/notifications/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [key]: value }),
+      });
+      if (res.ok) {
+        setPrefs(prev => prev ? { ...prev, [key]: value } : null);
+      }
+    } catch (error) {
+      console.error("Failed to update preference:", error);
+    }
+  }
 
   return (
     <div className="h-screen bg-background flex overflow-hidden">
@@ -76,24 +131,187 @@ export default function SettingsPage() {
         <main className="flex-1 overflow-y-auto pb-20">
           <div className="max-w-xl mx-auto px-4 py-6">
             <div className="flex items-center gap-3 mb-6">
-              <SettingsIcon className="w-6 h-6" />
-              <h1 className="text-2xl font-serif font-bold">Settings</h1>
+              <Settings className="w-6 h-6" />
+              <h1 className="text-2xl font-serif font-bold">Innstillinger</h1>
             </div>
+            
+            <div className="space-y-6">
+              {/* Theme */}
+              <div className="border border-border rounded-lg p-4 bg-card">
+                <h2 className="font-medium mb-4 flex items-center gap-2">
+                  <Sun className="w-5 h-5" />/<Moon className="w-5 h-5" /> Utseende
+                </h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setTheme("light")}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md ${theme === "light" ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80"}`}
+                  >
+                    <Sun className="w-4 h-4" /> Lys
+                  </button>
+                  <button
+                    onClick={() => setTheme("dark")}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md ${theme === "dark" ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80"}`}
+                  >
+                    <Moon className="w-4 h-4" /> Mørk
+                  </button>
+                  <button
+                    onClick={() => setTheme("system")}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md ${theme === "system" ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80"}`}
+                  >
+                    <Monitor className="w-4 h-4" /> System
+                  </button>
+                </div>
+              </div>
 
-            <div className="space-y-1 border border-border rounded-lg bg-card p-4">
-              <ThemeToggle />
-              <SettingRow 
-                icon={Monitor} 
-                title="Auto theme" 
-                description="Follow system preference"
-              >
-                <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-muted">
-                  <span className="sr-only">Coming soon</span>
-                  <span className="inline-flex h-4 w-4 translate-x-1 items-center justify-center rounded-full bg-background">
-                    <Moon className="w-3 h-3" />
-                  </span>
-                </button>
-              </SettingRow>
+              {/* Profile */}
+              <div className="border border-border rounded-lg p-4 bg-card">
+                <h2 className="font-medium mb-4 flex items-center gap-2">
+                  <User className="w-5 h-5" /> Profil
+                </h2>
+                {profileLoading ? (
+                  <p className="text-sm text-muted-foreground">Laster...</p>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Username (read only) */}
+                    <div>
+                      <label className="text-sm text-muted-foreground">Brukernavn</label>
+                      <p className="font-medium">@{profile?.username}</p>
+                    </div>
+                    
+                    {/* Name */}
+                    <div>
+                      <label className="text-sm text-muted-foreground flex items-center gap-1">
+                        <User className="w-4 h-4" /> Navn
+                      </label>
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full mt-1 px-3 py-2 rounded-md bg-background border border-border"
+                        placeholder="Ditt navn"
+                      />
+                    </div>
+                    
+                    {/* Email */}
+                    <div>
+                      <label className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Mail className="w-4 h-4" /> E-post
+                      </label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full mt-1 px-3 py-2 rounded-md bg-background border border-border"
+                        placeholder="din@epost.no"
+                      />
+                    </div>
+                    
+                    {/* Bio */}
+                    <div>
+                      <label className="text-sm text-muted-foreground flex items-center gap-1">
+                        <FileText className="w-4 h-4" /> Bio
+                      </label>
+                      <textarea
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        className="w-full mt-1 px-3 py-2 rounded-md bg-background border border-border resize-none h-24"
+                        placeholder="Fortell om deg selv..."
+                      />
+                    </div>
+                    
+                    {/* Agent Status (only for agents) */}
+                    {profile?.isAgent && (
+                      <div>
+                        <label className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Bot className="w-4 h-4" /> Agent-status
+                        </label>
+                        <select
+                          value={agentStatus}
+                          onChange={(e) => setAgentStatus(e.target.value)}
+                          className="w-full mt-1 px-3 py-2 rounded-md bg-background border border-border"
+                        >
+                          <option value="online">Online</option>
+                          <option value="idle">Idle</option>
+                          <option value="offline">Offline</option>
+                          <option value="working">Working</option>
+                          <option value="thinking">Thinking</option>
+                        </select>
+                      </div>
+                    )}
+                    
+                                        {/* Password Change */}
+                    <div>
+                      <label className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Lock className="w-4 h-4" /> Gammelt passord
+                      </label>
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full mt-1 px-3 py-2 rounded-md bg-background border border-border"
+                        placeholder="Skriv inn gammelt passord"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Lock className="w-4 h-4" /> Nytt passord
+                      </label>
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="w-full mt-1 px-3 py-2 rounded-md bg-background border border-border"
+                        placeholder="Skriv inn nytt passord"
+                      />
+                    </div>
+
+                    
+                    {/* Save button */}
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={saveProfile}
+                        disabled={saving}
+                        className="flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                      >
+                        <Save className="w-4 h-4" />
+                        {saving ? "Lagrer..." : "Lagre endringer"}
+                      </button>
+                      {saveMsg && <span className="text-sm text-muted-foreground">{saveMsg}</span>}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Notifications */}
+              <div className="border border-border rounded-lg p-4 bg-card">
+                <h2 className="font-medium mb-4 flex items-center gap-2">
+                  <Bell className="w-5 h-5" /> Varslinger
+                </h2>
+                {notifLoading ? (
+                  <p className="text-sm text-muted-foreground">Laster...</p>
+                ) : (
+                  <div className="space-y-3">
+                    {[
+                      { key: "notify_new_user" as const, label: "Nye brukere" },
+                      { key: "notify_new_post" as const, label: "Nye poster" },
+                      { key: "notify_like" as const, label: "Likes" },
+                      { key: "notify_comment" as const, label: "Kommentarer" },
+                      { key: "notify_follow" as const, label: "Nye følgere" },
+                    ].map(item => (
+                      <label key={item.key} className="flex items-center justify-between cursor-pointer">
+                        <span>{item.label}</span>
+                        <input
+                          type="checkbox"
+                          checked={prefs?.[item.key] ?? true}
+                          onChange={(e) => updatePreference(item.key, e.target.checked)}
+                          className="w-5 h-5"
+                        />
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </main>

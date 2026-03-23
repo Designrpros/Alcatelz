@@ -15,14 +15,26 @@ interface SidebarProps { className?: string; }
 export function Sidebar({ className }: SidebarProps) {
   const [user, setUser] = useState<UserType | null>(null);
   const [followedTags, setFollowedTags] = useState<FollowedTag[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [path, setPath] = useState("/");
   const router = useRouter();
 
   useEffect(() => { setPath(window.location.pathname); fetchUser(); }, []);
-  useEffect(() => { if (user) fetch("/api/hashtags/follow").then(r => r.json()).then(d => setFollowedTags(d.hashtags || [])).catch(() => {}); }, [user]);
+  useEffect(() => { if (user) { fetchHashtags(); fetchUnreadCount(); } }, [user]);
 
   const fetchUser = async () => {
     try { const r = await fetch("/api/auth/me"); const d = await r.json(); setUser(d.user); } catch {}
+  };
+
+  const fetchHashtags = async () => {
+    try { const r = await fetch("/api/hashtags/follow"); const d = await r.json(); setFollowedTags(d.hashtags || []); } catch {}
+  };
+
+  const fetchUnreadCount = async () => {
+    try {
+      const r = await fetch("/api/notifications");
+      if (r.ok) { const d = await r.json(); setUnreadCount(d.unreadCount || 0); }
+    } catch {}
   };
 
   const handleLogout = async () => {
@@ -39,12 +51,13 @@ export function Sidebar({ className }: SidebarProps) {
   const isActive = (href: string) => href === "/" ? path === "/" : path.startsWith(href);
 
   const navItems = [
-    { href: "/", icon: Home, label: "Home" },
-    { href: "/search", icon: Search, label: "Search" },
+    { href: "/", icon: Home, label: "Hjem" },
+    { href: "/search", icon: Search, label: "Søk" },
     { href: "/docs", icon: BookOpen, label: "API Docs" },
-    { href: "/community", icon: Users, label: "Community" },
-    { href: "/notifications", icon: Bell, label: "Notifications" },
-    { href: "/profile", icon: User, label: "Profile" },
+    { href: "/community", icon: Users, label: "Samfunn" },
+    { href: "/notifications", icon: Bell, label: "Varslinger", badge: unreadCount as number },
+    { href: "/profile", icon: User, label: "Profil" },
+    { href: "/settings", icon: Settings, label: "Innstillinger" },
   ];
 
   return (
@@ -70,52 +83,42 @@ export function Sidebar({ className }: SidebarProps) {
         </div>
       ) : (
         <div className="mb-4 p-3 rounded-lg bg-muted/50 text-center">
-          <Link href="/auth" className="text-sm text-primary hover:underline">Sign in to post</Link>
+          <Link href="/auth" className="text-sm text-primary hover:underline">Logg inn for å poste</Link>
         </div>
       )}
 
       <nav className="flex-1 space-y-1 overflow-y-auto">
-        {navItems.map(({ href, icon: Icon, label }) => (
-          <Link key={href} href={href} className={cn("flex items-center gap-3 px-3 py-2 rounded-lg transition-colors", isActive(href) ? "bg-muted text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted")}>
+        {navItems.map(({ href, icon: Icon, label, badge }) => (
+          <Link key={href} href={href} className={cn("flex items-center gap-3 px-3 py-2 rounded-lg transition-colors relative", isActive(href) ? "bg-muted text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted")}>
             <Icon className="w-5 h-5" />
             <span>{label}</span>
+            {(badge ?? 0) > 0 && (
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
+                {(badge ?? 0) > 99 ? "99+" : badge}
+              </span>
+            )}
           </Link>
         ))}
-
-        {user && followedTags.length > 0 && (
-          <>
-            <div className="my-3 border-t border-border" />
-            <div className="px-3 py-1">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Following</p>
-            </div>
-            {followedTags.map(tag => (
-              <div key={tag.slug} className="flex items-center gap-2 px-3 py-1.5 group">
-                <Link href={`/?server=${encodeURIComponent(tag.slug)}`} className="flex-1 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-                  <Hash className="w-4 h-4 text-primary" />
-                  <span>{tag.slug}</span>
-                </Link>
-                <button onClick={() => handleUnfollow(tag.slug)} className="opacity-0 group-hover:opacity-100 text-xs text-muted-foreground hover:text-destructive transition-opacity">
-                  ×
-                </button>
-              </div>
-            ))}
-          </>
-        )}
       </nav>
 
-      <div className="my-4 border-t border-border" />
-
-      <Link href="/settings" className={cn("flex items-center gap-3 px-3 py-2 rounded-lg transition-colors", isActive("/settings") ? "bg-muted text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted")}>
-        <Settings className="w-5 h-5" />
-        <span>Settings</span>
-      </Link>
-
-      {user && (
-        <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors w-full mt-1">
-          <LogOut className="w-5 h-5" />
-          <span>Log out</span>
-        </button>
+      {followedTags.length > 0 && (
+        <div className="mt-4 pt-4 border-t">
+          <p className="text-xs text-muted-foreground mb-2 px-3">Følgte hashtags</p>
+          <div className="space-y-1">
+            {followedTags.slice(0, 5).map(tag => (
+              <button key={tag.slug} onClick={() => handleUnfollow(tag.slug)} className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted">
+                <Hash className="w-4 h-4" />
+                #{tag.slug}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
+
+      <button onClick={handleLogout} className="mt-4 flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+        <LogOut className="w-5 h-5" />
+        <span>Logg ut</span>
+      </button>
     </div>
   );
 }

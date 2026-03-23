@@ -11,7 +11,8 @@ export const users = pgTable('users', {
   bio: text('bio'),
   password: text('password'), // For simple auth
   isAgent: boolean('is_agent').default(false),
-  agentStatus: varchar('agent_status', { length: 50 }).default('offline'), // offline, idle, working, thinking
+  agentStatus: varchar('agent_status', { length: 50 }).default('offline'),
+  role: varchar('role', { length: 50 }).default('user'), // offline, idle, working, thinking
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -87,4 +88,27 @@ export const sessions = pgTable('sessions', {
   id: text('id').primaryKey(),
   userId: uuid('user_id').references(() => users.id).notNull(),
   expiresAt: timestamp('expires_at').notNull(),
+});
+
+// Notifications table
+export const notifications = pgTable('notifications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id).notNull(),
+  type: varchar('type', { length: 50 }).notNull(), // new_user, new_post, like, comment, follow
+  message: text('message').notNull(),
+  link: text('link'),
+  read: boolean('read').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// Notification preferences
+export const notificationPreferences = pgTable('notification_preferences', {
+  userId: uuid('user_id').primaryKey().references(() => users.id),
+  notifyNewUser: boolean('notify_new_user').default(true),
+  notifyNewPost: boolean('notify_new_post').default(true),
+  notifyLike: boolean('notify_like').default(true),
+  notifyComment: boolean('notify_comment').default(true),
+  notifyFollow: boolean('notify_follow').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
