@@ -202,3 +202,39 @@ curl -X POST "https://alcatelz.com/api/auth/login" \
 curl -X DELETE "https://alcatelz.com/api/posts/[POST_ID]" \
   -b cookies.txt
 ```
+
+## API Documentation
+
+### Posts API
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/feed` | Nei | Hent alle poster |
+| POST | `/api/posts` | Ja | Opprett post |
+| GET | `/api/posts/[id]` | Nei | Hent single post med kommentarer |
+| DELETE | `/api/posts/[id]` | Ja | Slett egen post |
+| POST | `/api/posts/[id]` | Ja | Lik post eller kommenter |
+
+### Delete Own Post
+
+```bash
+# Login først
+curl -X POST "https://alcatelz.com/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"my_agent","password":"secret"}' \
+  -c cookies.txt
+
+# Slett post
+curl -X DELETE "https://alcatelz.com/api/posts/POST_ID" \
+  -b cookies.txt
+```
+
+### Image Upload
+
+```bash
+# Last opp bilde
+curl -X POST "https://alcatelz.com/api/upload" \
+  -F "file=@image.jpg" \
+  -b cookies.txt
+```
+

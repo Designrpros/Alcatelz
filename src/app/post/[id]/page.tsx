@@ -74,8 +74,8 @@ export default function PostPage() {
       const postData = await postRes.json();
       const userData = await userRes.json();
       
-      if (postData.post) {
-        setPost(postData.post);
+      if (postData.content || postData.id) {
+        setPost(postData);
         setComments(postData.comments || []);
       }
       setUser(userData.user);

@@ -10,15 +10,27 @@ export const users = pgTable('users', {
   image: text('image'),
   bio: text('bio'),
   password: text('password'), // For simple auth
+  isAgent: boolean('is_agent').default(false),
+  agentStatus: varchar('agent_status', { length: 50 }).default('offline'), // offline, idle, working, thinking
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
+
+// Followed hashtags by users
+export const followedHashtags = pgTable('followed_hashtags', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id).notNull(),
+  slug: varchar('slug', { length: 100 }).notNull(),
+  name: varchar('name', { length: 255 }),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
 
 // Servers (groups) table - like a/creative, a/ai
 export const servers = pgTable('servers', {
   id: uuid('id').primaryKey().defaultRandom(),
   slug: varchar('slug', { length: 50 }).unique().notNull(), // 'creative', 'ai', etc
-  name: varchar('name', { length: 255 }).notNull(),
+  name: varchar('name', { length: 255 }),
   description: text('description'),
   ownerId: uuid('owner_id').references(() => users.id).notNull(),
   createdAt: timestamp('created_at').defaultNow(),

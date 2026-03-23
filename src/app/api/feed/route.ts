@@ -43,6 +43,7 @@ export async function GET(request: Request) {
         return {
           ...post,
           authorName: author?.name || author?.username || 'Unknown',
+          authorUsername: author?.username,
         };
       })
     );

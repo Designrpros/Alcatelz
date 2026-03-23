@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/ui/sidebar";
 import { Inspector } from "@/components/ui/inspector";
 import { BottomDock } from "@/components/ui/bottom-dock";
 import { useUIStore } from "@/lib/ui-store";
-import { Bot, Calendar, Heart, MessageCircle, Settings, Loader2, LogIn, User } from "lucide-react";
+import { Bot, Calendar, Heart, MessageCircle, Settings, Loader2, UserPlus, UserMinus, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 
 interface ProfileUser {
@@ -29,6 +29,7 @@ interface UserStats {
 
 interface Post {
   id: string;
+  authorId: string;
   content: string;
   imageUrl: string | null;
   createdAt: string;
@@ -54,45 +55,94 @@ function formatTimeAgo(dateString: string): string {
   return `${Math.floor(seconds / 86400)}d ago`;
 }
 
-export default function MyProfilePage() {
+export default function ProfilePage() {
+  const params = useParams();
+  const username = params.username as string;
   const router = useRouter();
-  const [user, setUser] = useState<ProfileUser | null>(null);
+  
+  const [profile, setProfile] = useState<ProfileUser | null>(null);
   const [stats, setStats] = useState<UserStats>({ posts: 0, followers: 0, following: 0 });
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<ProfileUser | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
   const { isSidebarOpen, isInspectorOpen } = useUIStore();
+
+  const isOwnProfile = currentUser?.username === username;
+  const isAgentProfile = profile?.isAgent;
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [username]);
 
   const fetchData = async () => {
     try {
-      const userRes = await fetch('/api/auth/me');
-      const userData = await userRes.json();
-
-      if (!userData.user) {
-        router.push('/auth');
-        return;
-      }
-
-      const [profileRes, postsRes] = await Promise.all([
-        fetch(`/api/users/${userData.user.username}`),
-        fetch(`/api/users/${userData.user.username}/posts`)
+      const [profileRes, userRes, postsRes] = await Promise.all([
+        fetch(`/api/users/${username}`),
+        fetch('/api/auth/me'),
+        fetch(`/api/users/${username}/posts`)
       ]);
 
       const profileData = await profileRes.json();
+      const userData = await userRes.json();
       const postsData = await postsRes.json();
 
       if (profileRes.ok) {
-        setUser(profileData.user);
+        setProfile(profileData.user);
         setStats(profileData.stats);
+        setIsFollowing(profileData.isFollowing);
       }
+      
+      setCurrentUser(userData.user);
       setPosts(postsData.posts || []);
     } catch (e) {
       console.error('Failed to fetch data:', e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFollow = async () => {
+    if (!currentUser) {
+      router.push('/auth');
+      return;
+    }
+    
+    setFollowLoading(true);
+    try {
+      const method = isFollowing ? 'DELETE' : 'POST';
+      const res = await fetch(`/api/users/${username}/follow`, { method });
+      
+      if (res.ok) {
+        setIsFollowing(!isFollowing);
+        setStats(prev => ({
+          ...prev,
+          followers: isFollowing ? prev.followers - 1 : prev.followers + 1
+        }));
+      }
+    } catch (e) {
+      console.error('Follow/unfollow failed:', e);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
+  const getAgentStatusColor = (status: string) => {
+    switch (status) {
+      case 'working': return 'text-green-500';
+      case 'thinking': return 'text-blue-500';
+      case 'idle': return 'text-yellow-500';
+      default: return 'text-gray-500';
+    }
+  };
+
+  const getAgentStatusLabel = (status: string) => {
+    switch (status) {
+      case 'working': return 'Working...';
+      case 'thinking': return 'Thinking...';
+      case 'idle': return 'Idle';
+      default: return 'Offline';
     }
   };
 
@@ -104,15 +154,14 @@ export default function MyProfilePage() {
     );
   }
 
-  if (!user) {
+  if (!profile) {
     return (
       <div className="h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Bot className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-          <h2 className="text-xl font-bold">Sign in required</h2>
-          <Link href="/auth" className="text-primary hover:underline mt-4 inline-flex items-center gap-2">
-            <LogIn className="w-4 h-4" /> Sign in
-          </Link>
+          <h2 className="text-xl font-bold">User not found</h2>
+          <p className="text-muted-foreground mt-2">@{username} doesn&apos;t exist</p>
+          <Link href="/" className="text-primary hover:underline mt-4 inline-block">Go home</Link>
         </div>
       </div>
     );
@@ -130,32 +179,34 @@ export default function MyProfilePage() {
         <main className="flex-1 overflow-y-auto pb-20">
           {/* Header */}
           <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 py-4">
-            <div className="flex items-center justify-between">
-              <h1 className="font-bold text-lg">Profile</h1>
-              <Link 
-                href="/profile/edit"
-                className="px-3 py-1.5 rounded-full text-sm font-medium border border-border hover:bg-muted transition-colors flex items-center gap-2"
-              >
-                <Settings className="w-4 h-4" /> Edit
+            <div className="flex items-center gap-3">
+              <Link href="/" className="p-2 rounded-full hover:bg-muted transition-colors">
+                <ArrowLeft className="w-5 h-5" />
               </Link>
+              <div>
+                <h1 className="font-bold">{profile.name || profile.username}</h1>
+                <p className="text-xs text-muted-foreground">{stats.posts} posts</p>
+              </div>
             </div>
           </div>
 
           <div className="max-w-2xl mx-auto">
             {/* Profile Header */}
             <div className="relative">
+              {/* Cover/Banner area */}
               <div className="h-32 bg-gradient-to-r from-primary/20 to-primary/5" />
               
+              {/* Avatar */}
               <div className="absolute -bottom-12 left-4">
                 <div className="w-24 h-24 rounded-full border-4 border-background bg-muted overflow-hidden">
-                  {user.image ? (
-                    <Image src={user.image} alt={user.username} width={96} height={96} className="object-cover" />
+                  {profile.image ? (
+                    <Image src={profile.image} alt={profile.username} width={96} height={96} className="object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      {user.isAgent ? (
+                      {profile.isAgent ? (
                         <Bot className="w-12 h-12 text-primary" />
                       ) : (
-                        <User className="w-12 h-12 text-muted-foreground" />
+                        <Bot className="w-12 h-12 text-muted-foreground" />
                       )}
                     </div>
                   )}
@@ -165,38 +216,76 @@ export default function MyProfilePage() {
 
             {/* Profile Info */}
             <div className="pt-14 px-4">
-              <div>
-                <h2 className="text-xl font-bold">{user.name || user.username}</h2>
-                <p className="text-muted-foreground">@{user.username}</p>
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-xl font-bold">{profile.name || profile.username}</h2>
+                  <p className="text-muted-foreground">@{profile.username}</p>
+                  
+                  {/* Agent Status Badge */}
+                  {isAgentProfile && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className={`flex items-center gap-1 text-sm ${getAgentStatusColor(profile.agentStatus)}`}>
+                        <Bot className="w-4 h-4" />
+                        {getAgentStatusLabel(profile.agentStatus)}
+                      </span>
+                    </div>
+                  )}
+                </div>
                 
-                {user.isAgent && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-full font-medium flex items-center gap-1">
-                      <Bot className="w-3 h-3" /> AI Agent
-                    </span>
-                    <span className="text-xs text-yellow-500 flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
-                      {user.agentStatus}
-                    </span>
-                  </div>
+                {/* Follow/Edit Button */}
+                {!isOwnProfile ? (
+                  <button
+                    onClick={handleFollow}
+                    disabled={followLoading}
+                    className={`px-4 py-2 rounded-full font-medium flex items-center gap-2 transition-colors ${
+                      isFollowing 
+                        ? 'bg-muted text-foreground hover:bg-muted/80' 
+                        : 'bg-primary text-primary-foreground hover:opacity-90'
+                    }`}
+                  >
+                    {followLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : isFollowing ? (
+                      <>
+                        <UserMinus className="w-4 h-4" /> Unfollow
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4" /> Follow
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <Link 
+                    href="/profile/edit"
+                    className="px-4 py-2 rounded-full font-medium border border-border hover:bg-muted transition-colors flex items-center gap-2"
+                  >
+                    <Settings className="w-4 h-4" /> Edit
+                  </Link>
                 )}
               </div>
 
-              {user.bio && (
-                <p className="mt-4 text-sm leading-relaxed">{user.bio}</p>
+              {/* Bio */}
+              {profile.bio && (
+                <p className="mt-4 text-sm leading-relaxed">{profile.bio}</p>
               )}
 
+              {/* Meta info */}
               <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
-                  Joined {formatDate(user.createdAt)}
+                  Joined {formatDate(profile.createdAt)}
                 </span>
               </div>
 
+              {/* Stats */}
               <div className="flex items-center gap-6 mt-4">
-                <span><span className="font-bold">{stats.posts}</span> posts</span>
-                <span><span className="font-bold">{stats.followers}</span> followers</span>
-                <span><span className="font-bold">{stats.following}</span> following</span>
+                <Link href={`/users/${profile.username}/followers`} className="hover:underline">
+                  <span className="font-bold">{stats.followers}</span> followers
+                </Link>
+                <Link href={`/users/${profile.username}/following`} className="hover:underline">
+                  <span className="font-bold">{stats.following}</span> following
+                </Link>
               </div>
             </div>
 
@@ -217,18 +306,18 @@ export default function MyProfilePage() {
                   <div key={post.id} className="border border-border rounded-md p-4 bg-card">
                     <div className="flex items-start gap-3">
                       <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                        {user.isAgent ? (
+                        {profile.isAgent ? (
                           <Bot className="w-4 h-4 text-primary" />
-                        ) : user.image ? (
-                          <Image src={user.image} alt="" width={36} height={36} className="rounded-full" />
+                        ) : profile.image ? (
+                          <Image src={profile.image} alt="" width={36} height={36} className="rounded-full" />
                         ) : (
                           <Bot className="w-4 h-4" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium text-sm">{user.name || user.username}</span>
-                          <span className="text-xs text-muted-foreground">@{user.username}</span>
+                          <span className="font-medium text-sm">{profile.name || profile.username}</span>
+                          <span className="text-xs text-muted-foreground">@{profile.username}</span>
                           <span className="text-xs text-muted-foreground">· {formatTimeAgo(post.createdAt)}</span>
                         </div>
                         <p className="text-sm leading-relaxed whitespace-pre-wrap mt-1">{post.content}</p>

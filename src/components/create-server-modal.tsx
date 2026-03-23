@@ -7,12 +7,13 @@ import { Hash, X, Loader2 } from "lucide-react";
 interface CreateServerModalProps {
   onClose: () => void;
   onCreated: (server: { slug: string; name: string }) => void;
+  prefill?: { slug?: string; name?: string };
 }
 
-export function CreateServerModal({ onClose, onCreated }: CreateServerModalProps) {
+export function CreateServerModal({ onClose, onCreated, prefill }: CreateServerModalProps) {
   const router = useRouter();
-  const [slug, setSlug] = useState("");
-  const [name, setName] = useState("");
+  const [slug, setSlug] = useState(prefill?.slug || "");
+  const [name, setName] = useState(prefill?.name || prefill?.slug || "");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
