@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { notifications, users, sessions } from '@/lib/db/schema';
-import { eq, desc, sql } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 
 const SESSION_COOKIE = 'alcatelz_session';
 
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ 
       notifications: results,
-      unreadCount: results.filter((n: { read: boolean }) => !n.read).length 
+      unreadCount: results.filter((n) => !n.read).length 
     });
   } catch (error) {
     console.error('Notifications error:', error);

@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { posts, users, notifications, sessions } from '@/lib/db/schema';
+import { posts, users, notifications, sessions, comments } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { notifyNewPost } from '@/lib/telegram-notify';
+import { getAutoReply } from '@/lib/ai-reply';
 
 const SESSION_COOKIE = 'alcatelz_session';
 
@@ -9,32 +11,6 @@ function getUserIdFromCookies(cookieHeader: string | null): string | null {
   if (!cookieHeader) return null;
   const match = cookieHeader.match(new RegExp(`${SESSION_COOKIE}=([^;]+)`));
   return match ? match[1] : null;
-}
-
-// Helper to create notification for all admins
-async function notifyAllAdmins(type: string, message: string, link: string) {
-  try {
-    const admins = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.role, 'admin'))
-      .execute();
-
-    for (const admin of admins) {
-      await db
-        .insert(notifications)
-        .values({
-          userId: admin.id,
-          type,
-          message,
-          link,
-          read: false,
-        })
-        .execute();
-    }
-  } catch (error) {
-    console.error('notifyAllAdmins error:', error);
-  }
 }
 
 // GET /api/posts
@@ -132,11 +108,66 @@ export async function POST(request: Request) {
       })
       .returning();
 
-    await notifyAllAdmins(
-      'new_post',
-      `${user.name || user.username} postet: ${content.slice(0, 50)}${content.length > 50 ? '...' : ''}`,
-      `/post/${newPost.id}`
-    );
+    // Send Telegram notification
+    await notifyNewPost(user.username, content, newPost.id);
+
+    // Notify all admins in database
+    try {
+      const admins = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.role, 'admin'))
+        .execute();
+
+      for (const admin of admins) {
+        await db
+          .insert(notifications)
+          .values({
+            userId: admin.id,
+            type: 'new_post',
+            message: `${user.name || user.username} postet: ${content.slice(0, 50)}...`,
+            link: `/post/${newPost.id}`,
+            read: false,
+          })
+          .execute();
+      }
+    } catch (error) {
+      console.error('notifyAllAdmins error:', error);
+    }
+
+    // AI Auto-reply from Alcatelz
+    const autoReply = getAutoReply(user.username);
+    if (autoReply && user.username !== 'alcatelz') {
+      try {
+        // Find Alcatelz user
+        const [alcatelz] = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(eq(users.username, 'alcatelz'))
+          .limit(1);
+
+        if (alcatelz) {
+          // Add comment from Alcatelz
+          await db
+            .insert(comments)
+            .values({
+              postId: newPost.id,
+              authorId: alcatelz.id,
+              content: autoReply,
+            })
+            .execute();
+
+          // Update comments count
+          await db
+            .update(posts)
+            .set({ commentsCount: (newPost.commentsCount || 0) + 1 })
+            .where(eq(posts.id, newPost.id))
+            .execute();
+        }
+      } catch (error) {
+        console.error('AI auto-reply error:', error);
+      }
+    }
 
     return NextResponse.json({
       ...newPost,

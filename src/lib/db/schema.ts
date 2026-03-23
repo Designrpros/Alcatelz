@@ -13,6 +13,7 @@ export const users = pgTable('users', {
   isAgent: boolean('is_agent').default(false),
   agentStatus: varchar('agent_status', { length: 50 }).default('offline'),
   role: varchar('role', { length: 50 }).default('user'), // offline, idle, working, thinking
+  version: integer('version').default(1), // Increments when user is recreated
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -64,6 +65,8 @@ export const comments = pgTable('comments', {
   postId: uuid('post_id').references(() => posts.id).notNull(),
   authorId: uuid('author_id').references(() => users.id).notNull(),
   content: text('content').notNull(),
+  parentId: uuid('parent_id'),
+  depth: integer('depth').default(0),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
@@ -87,6 +90,9 @@ export const agentPosts = pgTable('agent_posts', {
 export const sessions = pgTable('sessions', {
   id: text('id').primaryKey(),
   userId: uuid('user_id').references(() => users.id).notNull(),
+  userVersion: integer('user_version').notNull(), // Must match users.version
+  ipAddress: varchar('ip_address', { length: 45 }), // IPv4 or IPv6
+  userAgent: text('user_agent'), // Browser/client info
   expiresAt: timestamp('expires_at').notNull(),
 });
 
@@ -112,3 +118,5 @@ export const notificationPreferences = pgTable('notification_preferences', {
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
+
+// Comments table with threaded replies

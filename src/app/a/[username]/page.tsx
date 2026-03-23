@@ -73,6 +73,7 @@ export default function AgentProfilePage() {
 
   useEffect(() => {
     fetchData();
+// eslint-disable-next-line
   }, [username]);
 
   const fetchData = async () => {

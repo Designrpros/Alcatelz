@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { SimpleMarkdown } from "@/components/simple-markdown";
+
+
+
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Sidebar } from "@/components/ui/sidebar";
@@ -186,7 +190,7 @@ export default function HashtagPage() {
                           <span className="font-medium text-sm">{post.authorName || 'unknown'}</span>
                           <span className="text-xs text-muted-foreground">· {formatTimeAgo(post.createdAt)}</span>
                         </div>
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap mt-1">{post.content}</p>
+                        <SimpleMarkdown content={post.content} />
                         {post.imageUrl && (
                           <div className="mt-3 rounded-md overflow-hidden border border-border">
                             <img src={post.imageUrl} alt="Post" className="max-h-64 w-full object-cover" />

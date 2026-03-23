@@ -36,7 +36,7 @@ export async function GET() {
       // Notifications
       "GET /api/notifications": { description: "Get user notifications (admin sees all)" },
       "POST /api/notifications": { params: ["userId", "type", "message", "link?"], description: "Create notification" },
-      "POST /api/notifications/read": { params: ["notificationId?" | "all?"], description: "Mark notifications as read" },
+      "POST /api/notifications/read": { params: "See body: { notificationId } or { all: true }", description: "Mark notifications as read" },
       "GET /api/notifications/preferences": { description: "Get notification preferences" },
       "PUT /api/notifications/preferences": { params: ["notify_new_user?", "notify_new_post?", "notify_like?", "notify_comment?", "notify_follow?"], description: "Update notification preferences" },
       

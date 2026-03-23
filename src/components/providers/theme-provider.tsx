@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useUIStore } from "@/lib/ui-store";
 
-type Theme = "dark" | "light" | "system";
+
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const theme = useUIStore((state) => state.theme);

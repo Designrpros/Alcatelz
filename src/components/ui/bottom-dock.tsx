@@ -76,9 +76,9 @@ export function BottomDock() {
             title={item.label}
           >
             <Icon className="w-5 h-5" />
-            {item.badge > 0 && (
+            {(item.badge ?? 0) > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-                {item.badge > 9 ? "9+" : item.badge}
+                {(item.badge ?? 0) > 9 ? "9+" : item.badge}
               </span>
             )}
           </Link>

@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { users, sessions } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
+import bcrypt from 'bcryptjs';
 
 const SESSION_COOKIE = 'alcatelz_session';
 const SESSION_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -35,13 +36,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Username already taken' }, { status: 409 });
     }
 
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // Create user
     const [newUser] = await db
       .insert(users)
       .values({
         username,
         name: name || username,
-        password, // In production: hash this!
+        password: hashedPassword,
+        version: 1,
       })
       .returning();
 
@@ -54,6 +59,7 @@ export async function POST(request: Request) {
       .values({
         id: sessionId,
         userId: newUser.id,
+        userVersion: newUser.version || 1,
         expiresAt,
       });
 

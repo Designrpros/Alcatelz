@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { users, sessions } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
+import bcrypt from 'bcryptjs';
 
 const SESSION_COOKIE = 'alcatelz_session';
 const SESSION_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -27,20 +28,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    // Check password (plaintext for now - TODO: hash!)
-    if (user.password !== password) {
+    // Check password (hashed with bcrypt)
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    // Create session
+    // Invalidate all existing sessions for this user (single session per user)
+    await db
+      .delete(sessions)
+      .where(eq(sessions.userId, user.id));
+
+    // Create new session
     const sessionId = randomUUID();
     const expiresAt = new Date(Date.now() + SESSION_DURATION);
+
+    // Get IP and User-Agent for security binding
+    const ipAddress = request.headers.get('x-forwarded-for') || 
+                      request.headers.get('x-real-ip') || 
+                      'unknown';
+    const userAgent = request.headers.get('user-agent') || 'unknown';
 
     await db
       .insert(sessions)
       .values({
         id: sessionId,
         userId: user.id,
+        userVersion: user.version || 1,
+        ipAddress,
+        userAgent,
         expiresAt,
       });
 

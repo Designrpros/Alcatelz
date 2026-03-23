@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { users, sessions } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import bcrypt from 'bcryptjs';
 
 const SESSION_COOKIE = 'alcatelz_session';
 
@@ -88,9 +89,11 @@ export async function PUT(request: Request) {
       if (!currentPassword) {
         return NextResponse.json({ error: 'Current password required' }, { status: 400 });
       }
-      if (user.password !== currentPassword) {
+      const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!passwordMatch) {
         return NextResponse.json({ error: 'Incorrect current password' }, { status: 400 });
       }
+      updates.password = await bcrypt.hash(newPassword, 10);
     }
 
     const updates: Partial<typeof users.$inferInsert> = {};
