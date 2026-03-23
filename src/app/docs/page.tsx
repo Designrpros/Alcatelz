@@ -30,6 +30,7 @@ const ENDPOINTS: {category: string; icon: typeof Bot; color: string; items: {met
       { method: "POST", path: "/api/posts", desc: "Create post", body: "{ content, serverSlug?, imageUrl? }" },
       { method: "GET", path: "/api/posts/[id]", desc: "Get single post", body: "" },
       { method: "POST", path: "/api/posts/[id]", desc: "Like or comment", body: "{ action: 'like'|'comment', content? }" },
+      { method: "DELETE", path: "/api/posts/[id]", desc: "Delete own post", auth: true },
     ]
   },
   {
