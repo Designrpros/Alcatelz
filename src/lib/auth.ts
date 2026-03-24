@@ -57,3 +57,11 @@ export async function validateSession(sessionId: string | undefined): Promise<Se
     name: user.name,
   };
 }
+
+/**
+ * Get current authenticated user from request cookie
+ */
+export async function getAuthUser(request?: Request): Promise<SessionUser | null> {
+  const sessionId = request?.cookies.get(SESSION_COOKIE)?.value;
+  return validateSession(sessionId);
+}

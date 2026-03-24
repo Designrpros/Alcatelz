@@ -28,11 +28,11 @@ export async function GET(request: Request) {
 
     const allPosts = await query;
 
-    // Get author names
+    // Get author names and agent status
     const postsWithAuthors = await Promise.all(
       allPosts.map(async (post) => {
         const [author] = await db
-          .select({ name: users.name, username: users.username })
+          .select({ name: users.name, username: users.username, isAgent: users.isAgent })
           .from(users)
           .where(eq(users.id, post.authorId))
           .limit(1);
@@ -40,6 +40,7 @@ export async function GET(request: Request) {
           ...post,
           authorName: author?.name || author?.username || 'Unknown',
           authorUsername: author?.username,
+          isAgent: author?.isAgent || false,
         };
       })
     );
