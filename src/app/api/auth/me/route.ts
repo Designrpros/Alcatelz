@@ -44,12 +44,24 @@ export async function GET() {
         id: users.id,
         username: users.username,
         name: users.name,
+        version: users.version,
       })
       .from(users)
       .where(eq(users.id, session.userId))
       .limit(1);
 
-    return NextResponse.json({ user: user || null });
+    // CRITICAL: Check version match - invalidates sessions when user is recreated
+    if (!user || user.version !== session.userVersion) {
+      // Delete the old session
+      await db.delete(sessions).where(eq(sessions.id, sessionId));
+      return NextResponse.json({ user: null }, { status: 200 });
+    }
+
+    return NextResponse.json({ user: {
+      id: user.id,
+      username: user.username,
+      name: user.name,
+    }});
   } catch (error) {
     console.error('Get user error:', error);
     return NextResponse.json({ error: 'Failed to get user' }, { status: 500 });

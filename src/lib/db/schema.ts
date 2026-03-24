@@ -11,7 +11,9 @@ export const users = pgTable('users', {
   bio: text('bio'),
   password: text('password'), // For simple auth
   isAgent: boolean('is_agent').default(false),
-  agentStatus: varchar('agent_status', { length: 50 }).default('offline'), // offline, idle, working, thinking
+  agentStatus: varchar('agent_status', { length: 50 }).default('offline'),
+  role: varchar('role', { length: 50 }).default('user'), // offline, idle, working, thinking
+  version: integer('version').default(1), // Increments when user is recreated
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -36,7 +38,7 @@ export const servers = pgTable('servers', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-// Posts table (now with serverSlug)
+// Posts table (hashtags extracted automatically)
 export const posts = pgTable('posts', {
   id: uuid('id').primaryKey().defaultRandom(),
   authorId: uuid('author_id').references(() => users.id).notNull(),
@@ -44,7 +46,6 @@ export const posts = pgTable('posts', {
   imageUrl: text('image_url'),
   likesCount: integer('likes_count').default(0),
   commentsCount: integer('comments_count').default(0),
-  serverSlug: varchar('server_slug', { length: 50 }).default('alcatelz'), // which server: 'alcatelz', 'creative', 'ai'
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -63,6 +64,8 @@ export const comments = pgTable('comments', {
   postId: uuid('post_id').references(() => posts.id).notNull(),
   authorId: uuid('author_id').references(() => users.id).notNull(),
   content: text('content').notNull(),
+  parentId: uuid('parent_id'),
+  depth: integer('depth').default(0),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
@@ -86,5 +89,41 @@ export const agentPosts = pgTable('agent_posts', {
 export const sessions = pgTable('sessions', {
   id: text('id').primaryKey(),
   userId: uuid('user_id').references(() => users.id).notNull(),
+  userVersion: integer('user_version').notNull(), // Must match users.version
+  ipAddress: varchar('ip_address', { length: 45 }), // IPv4 or IPv6
+  userAgent: text('user_agent'), // Browser/client info
   expiresAt: timestamp('expires_at').notNull(),
 });
+
+// Notifications table
+export const notifications = pgTable('notifications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id).notNull(),
+  type: varchar('type', { length: 50 }).notNull(), // new_user, new_post, like, comment, follow
+  message: text('message').notNull(),
+  link: text('link'),
+  read: boolean('read').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// Notification preferences
+export const notificationPreferences = pgTable('notification_preferences', {
+  userId: uuid('user_id').primaryKey().references(() => users.id),
+  notifyNewUser: boolean('notify_new_user').default(true),
+  notifyNewPost: boolean('notify_new_post').default(true),
+  notifyLike: boolean('notify_like').default(true),
+  notifyComment: boolean('notify_comment').default(true),
+  notifyFollow: boolean('notify_follow').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Post hashtags table (auto-extracted from content)
+export const postHashtags = pgTable('post_hashtags', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  postId: uuid('post_id').references(() => posts.id, { onDelete: 'cascade' }).notNull(),
+  hashtag: varchar('hashtag', { length: 100 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// Comments table with threaded replies

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Home, Search, Bell, User, Sidebar as SidebarIcon, PanelRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/lib/ui-store";
@@ -9,12 +10,30 @@ import { useUIStore } from "@/lib/ui-store";
 export function BottomDock() {
   const pathname = usePathname();
   const { isSidebarOpen, setSidebarOpen, isInspectorOpen, setInspectorOpen } = useUIStore();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    fetchUnreadCount();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  async function fetchUnreadCount() {
+    try {
+      const r = await fetch("/api/notifications");
+      if (r.ok) {
+        const d = await r.json();
+        setUnreadCount(d.unreadCount || 0);
+      }
+    } catch {}
+  }
 
   const navItems = [
-    { href: "/", icon: Home, label: "Home" },
-    { href: "/search", icon: Search, label: "Search" },
-    { href: "/notifications", icon: Bell, label: "Alerts" },
-    { href: "/profile", icon: User, label: "Profile" },
+    { href: "/", icon: Home, label: "Hjem" },
+    { href: "/search", icon: Search, label: "Søk" },
+    { href: "/notifications", icon: Bell, label: "Varslinger", badge: unreadCount as number },
+    { href: "/profile", icon: User, label: "Profil" },
   ];
 
   const isActive = (href: string) => {
@@ -49,7 +68,7 @@ export function BottomDock() {
             key={item.href}
             href={item.href}
             className={cn(
-              "p-2 rounded-full transition-all",
+              "p-2 rounded-full transition-all relative",
               active
                 ? "text-foreground bg-muted"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
@@ -57,6 +76,11 @@ export function BottomDock() {
             title={item.label}
           >
             <Icon className="w-5 h-5" />
+            {(item.badge ?? 0) > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                {(item.badge ?? 0) > 9 ? "9+" : item.badge}
+              </span>
+            )}
           </Link>
         );
       })}

@@ -1,0 +1,71 @@
+
+> alcatelz-domain@0.1.0 build
+> next build
+
+   ▲ Next.js 15.3.3
+   - Environments: .env.production.local, .env.local, .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 3.0s
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/34) ...
+   Generating static pages (8/34) 
+   Generating static pages (16/34) 
+   Generating static pages (25/34) 
+ ✓ Generating static pages (34/34)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                     5.7 kB         122 kB
+├ ○ /_not-found                            981 B         102 kB
+├ ƒ /a/[username]                        3.34 kB         120 kB
+├ ○ /about                                 176 B         105 kB
+├ ƒ /api/auth/login                        213 B         101 kB
+├ ƒ /api/auth/logout                       213 B         101 kB
+├ ƒ /api/auth/me                           213 B         101 kB
+├ ƒ /api/auth/register                     213 B         101 kB
+├ ƒ /api/comments                          213 B         101 kB
+├ ƒ /api/feed                              213 B         101 kB
+├ ƒ /api/hashtags                          213 B         101 kB
+├ ƒ /api/hashtags/follow                   213 B         101 kB
+├ ƒ /api/help                              213 B         101 kB
+├ ƒ /api/notifications                     213 B         101 kB
+├ ƒ /api/notifications/preferences         213 B         101 kB
+├ ƒ /api/notifications/read                213 B         101 kB
+├ ƒ /api/posts                             213 B         101 kB
+├ ƒ /api/posts/[id]                        213 B         101 kB
+├ ƒ /api/posts/[id]/comments               213 B         101 kB
+├ ƒ /api/posts/[id]/like                   213 B         101 kB
+├ ƒ /api/profile                           213 B         101 kB
+├ ƒ /api/search                            213 B         101 kB
+├ ƒ /api/servers                           213 B         101 kB
+├ ƒ /api/status                            213 B         101 kB
+├ ƒ /api/upload                            213 B         101 kB
+├ ƒ /api/users/[username]                  213 B         101 kB
+├ ƒ /api/users/[username]/follow           213 B         101 kB
+├ ƒ /api/users/[username]/posts            213 B         101 kB
+├ ƒ /api/v1/feed                           213 B         101 kB
+├ ƒ /api/v1/like                           213 B         101 kB
+├ ○ /auth                                2.49 kB         107 kB
+├ ○ /community                             839 B         117 kB
+├ ○ /docs                                3.29 kB         120 kB
+├ ƒ /hashtag/[slug]                      2.71 kB         119 kB
+├ ○ /notifications                       1.85 kB         118 kB
+├ ƒ /post/[id]                           2.75 kB         119 kB
+├ ○ /profile                             2.62 kB         119 kB
+├ ○ /search                              2.69 kB         119 kB
+├ ○ /settings                            2.59 kB         119 kB
+├ ○ /setup                               2.47 kB         119 kB
+└ ƒ /users/[username]                    3.11 kB         119 kB
++ First Load JS shared by all             101 kB
+  ├ chunks/1684-9b40f555a4b6a58a.js      45.9 kB
+  ├ chunks/4bd1b696-ae3373ee558568c4.js  53.2 kB
+  └ other shared chunks (total)          1.92 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/ui/sidebar";
 import { Inspector } from "@/components/ui/inspector";
 import { BottomDock } from "@/components/ui/bottom-dock";
 import { useUIStore } from "@/lib/ui-store";
-import { Bot, Copy, Check, BookOpen, Hash, Users, Heart, Search, Upload } from "lucide-react";
+import { Bot, Copy, Check, BookOpen, Hash, Users, Heart, Search, Upload, Bell, Settings } from "lucide-react";
 
 const API_BASE = "https://alcatelz.com/api";
 
@@ -49,6 +49,26 @@ const ENDPOINTS: {category: string; icon: typeof Bot; color: string; items: {met
     color: "text-orange-500",
     items: [
       { method: "GET", path: "/api/search", desc: "Search posts & users", body: "?q=query&type=all|posts|users" },
+    ]
+  },
+  {
+    category: "Profile",
+    icon: Settings,
+    color: "text-cyan-500",
+    items: [
+      { method: "GET", path: "/api/profile", desc: "Get user profile", body: "", auth: true },
+      { method: "PUT", path: "/api/profile", desc: "Update profile", body: "{ name?, email?, bio?, agentStatus?, currentPassword?, newPassword? }", auth: true },
+    ]
+  },
+  {
+    category: "Notifications",
+    icon: Bell,
+    color: "text-pink-500",
+    items: [
+      { method: "GET", path: "/api/notifications", desc: "Get notifications (admins see all)", body: "", auth: true },
+      { method: "POST", path: "/api/notifications/read", desc: "Mark as read", body: "{ notificationId? } | { all: true }", auth: true },
+      { method: "GET", path: "/api/notifications/preferences", desc: "Get preferences", body: "", auth: true },
+      { method: "PUT", path: "/api/notifications/preferences", desc: "Update preferences", body: "{ notify_new_user?, notify_new_post?, ... }", auth: true },
     ]
   },
   {

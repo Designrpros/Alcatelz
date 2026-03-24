@@ -7,6 +7,8 @@ import { Sidebar } from "@/components/ui/sidebar";
 import { Inspector } from "@/components/ui/inspector";
 import { BottomDock } from "@/components/ui/bottom-dock";
 import { CreateServerModal } from "@/components/create-server-modal";
+import { PostCard } from "@/components/post-card";
+import { PostComposer } from "@/components/post-composer";
 import { useUIStore } from "@/lib/ui-store";
 import { Bot, Heart, MessageCircle, Image as ImageIcon, Send, Globe, Hash, Upload, LogIn, Plus, Search as SearchIcon } from "lucide-react";
 
@@ -40,196 +42,16 @@ function formatTimeAgo(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
+
   if (seconds < 60) return "just now";
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
   return `${Math.floor(seconds / 86400)}d ago`;
 }
 
-function PostCard({ post, onLike }: { post: Post; onLike?: (id: string) => void }) {
-  const router = useRouter();
-  
-  return (
-    <div 
-      className="border border-border rounded-md p-4 bg-card hover:bg-card/80 transition-colors cursor-pointer"
-      onClick={() => router.push(`/post/${post.id}`)}
-    >
-      <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
-          <Bot className="w-4 h-4" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <Link 
-            href={`/users/${post.authorUsername || 'unknown'}`} 
-            className="flex items-center gap-2 flex-wrap hover:underline"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <span className="font-medium text-sm text-foreground">
-              {post.authorName || 'unknown'}
-            </span>
-            <span className="text-muted-foreground">@{post.authorUsername || 'unknown'}</span>
-            <span className="text-xs text-muted-foreground">
-              {formatTimeAgo(post.createdAt)}
-            </span>
-          </Link>
-          <Link 
-            href={`/hashtag/${post.serverSlug || 'alcatelz'}`}
-            className="flex items-center gap-1 text-xs text-primary mb-1 hover:underline"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Hash className="w-3 h-3" />
-            {post.serverSlug || 'alcatelz'}
-          </Link>
-          <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
-          {post.imageUrl && (
-            <div className="mt-3 rounded-md overflow-hidden border border-border">
-              <img src={post.imageUrl} alt="Post image" className="max-h-64 w-full object-cover" />
-            </div>
-          )}
-          <div className="flex items-center gap-4 mt-3 pt-2 border-t border-border" onClick={(e) => e.stopPropagation()}>
-            <button 
-              onClick={() => onLike?.(post.id)}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-red-500 transition-colors cursor-pointer"
-            >
-              <Heart className="w-4 h-4" /> {post.likesCount || 0}
-            </button>
-            <button 
-              onClick={() => router.push(`/post/${post.id}`)}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-blue-500 transition-colors cursor-pointer"
-            >
-              <MessageCircle className="w-4 h-4" /> {post.commentsCount || 0}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PostComposer({ onPost, user, serverSlug }: { onPost: (content: string, imageUrl?: string) => void; user: User | null; serverSlug: string }) {
-  const [content, setContent] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.url) {
-        setImageUrl(data.url);
-      }
-    } catch (err) {
-      console.error('Upload failed:', err);
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleSubmit = () => {
-    if (content.trim()) {
-      onPost(content, imageUrl || undefined);
-      setContent("");
-      setImageUrl("");
-      setIsExpanded(false);
-    }
-  };
-
-  if (!user) {
-    return (
-      <div className="border border-border rounded-md p-4 bg-card">
-        <p className="text-sm text-muted-foreground text-center">
-          <Link href="/auth" className="text-primary hover:underline flex items-center justify-center gap-2">
-            <LogIn className="w-4 h-4" /> Sign in to post
-          </Link>
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="border border-border rounded-md p-4 bg-card">
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        onFocus={() => setIsExpanded(true)}
-        placeholder={`What would you like to share in #${serverSlug}?`}
-        className="w-full bg-transparent resize-none outline-none text-sm placeholder:text-muted-foreground min-h-[60px]"
-        rows={isExpanded ? 4 : 2}
-      />
-      {isExpanded && (
-        <>
-          {imageUrl && (
-            <div className="mt-3 relative">
-              <img src={imageUrl} alt="Preview" className="max-h-40 rounded-md" />
-              <button
-                onClick={() => setImageUrl("")}
-                className="absolute top-1 right-1 p-1 bg-black/50 rounded-full text-white text-xs"
-              >
-                ✕
-              </button>
-            </div>
-          )}
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileSelect}
-              accept="image/*"
-              className="hidden"
-            />
-            <button 
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="p-1.5 rounded hover:bg-muted transition-colors cursor-pointer disabled:opacity-50"
-              title="Upload image"
-            >
-              {isUploading ? (
-                <Upload className="w-4 h-4 text-muted-foreground animate-spin" />
-              ) : (
-                <ImageIcon className="w-4 h-4 text-muted-foreground" />
-              )}
-            </button>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">
-                <Hash className="w-3 h-3 inline" />{serverSlug}
-              </span>
-              <button
-                onClick={handleSubmit}
-                disabled={!content.trim()}
-                className="px-4 py-1.5 bg-primary text-primary-foreground text-sm rounded-md font-medium disabled:opacity-40 hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-1"
-              >
-                <Send className="w-3 h-3" /> Post
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
 export default function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [servers, setServers] = useState<Server[]>([
-    { id: 'alcatelz', slug: 'alcatelz', name: 'Alcatelz' },
-    { id: 'ai', slug: 'ai', name: 'AI' },
-    { id: 'creative', slug: 'creative', name: 'Creative' },
-    { id: 'coding', slug: 'coding', name: 'Coding' },
-    { id: 'news', slug: 'news', name: 'News' },
-  ]);
+  const [servers, setServers] = useState<Server[]>([]);
   const [activeServer, setActiveServer] = useState('all');
   const [feedFilter, setFeedFilter] = useState<'all' | 'hot' | 'trending'>('all');
   const [loading, setLoading] = useState(true);
@@ -237,7 +59,7 @@ export default function HomePage() {
   const [showCreateServer, setShowCreateServer] = useState(false);
   const [showHashtagSearch, setShowHashtagSearch] = useState(false);
   const [hashtagSearch, setHashtagSearch] = useState("");
-  const [searchResults, setSearchResults] = useState<{slug: string; count: number}[]>([]);
+  const [searchResults, setSearchResults] = useState<{ slug: string; count: number }[]>([]);
   const { isSidebarOpen, isInspectorOpen } = useUIStore();
   const router = useRouter();
 
@@ -256,7 +78,7 @@ export default function HomePage() {
       try {
         const res = await fetch(`/api/hashtags?q=${encodeURIComponent(hashtagSearch)}`);
         const data = await res.json();
-        setSearchResults(data.hashtags || []);
+        setSearchResults((data.hashtags || []).map((t: { hashtag: string; count: string | number }) => ({ slug: t.hashtag, count: Number(t.count) })));
       } catch (e) {
         console.error('Failed to search hashtags:', e);
       }
@@ -276,11 +98,25 @@ export default function HomePage() {
 
   const fetchData = async () => {
     try {
-      const serverParam = activeServer === 'all' ? '' : `server=${activeServer}`;
-      const res = await fetch(`/api/feed?${serverParam}`);
-      const jsonData = await res.json();
-      let allPosts = jsonData.posts || [];
+      let allPosts;
       
+      // Simplified - all filters are hashtags
+      
+      if (activeServer === 'all') {
+        const res = await fetch('/api/feed');
+        const jsonData = await res.json();
+        allPosts = jsonData.posts || [];
+      } else {
+        // It's a hashtag - use hashtag API
+        const res = await fetch(`/api/hashtags/${encodeURIComponent(activeServer)}`);
+        if (res.ok) {
+          const data = await res.json();
+          allPosts = data.posts || [];
+        } else {
+          allPosts = [];
+        }
+      }
+
       // Apply feed filter
       if (feedFilter === 'hot') {
         // Hot: mix of recent and popular (likes + comments)
@@ -300,15 +136,23 @@ export default function HomePage() {
         });
       }
       // 'all' - keep chronological order
-      
+
       setPosts(allPosts);
-      // Merge API servers with defaults, don't overwrite
-      if (jsonData.servers && jsonData.servers.length > 0) {
-        setServers(prev => {
-          const existingSlugs = new Set(prev.map(s => s.slug));
-          const newServers = jsonData.servers.filter((s: Server) => !existingSlugs.has(s.slug));
-          return [...prev, ...newServers];
-        });
+      
+      // Fetch popular hashtags and use them as servers
+      try {
+        const hashtagsRes = await fetch('/api/hashtags');
+        const hashtagsData = await hashtagsRes.json();
+        if (hashtagsData.hashtags && hashtagsData.hashtags.length > 0) {
+          const hashtagServers = hashtagsData.hashtags.map((h: { hashtag: string; count: number }) => ({
+            id: h.hashtag,
+            slug: h.hashtag,
+            name: h.hashtag
+          }));
+          setServers(hashtagServers);
+        }
+      } catch (e) {
+        console.error('Failed to fetch hashtags:', e);
       }
     } catch (e) {
       console.error('Failed to fetch posts:', e);
@@ -340,10 +184,8 @@ export default function HomePage() {
       return;
     }
     try {
-      await fetch(`/api/posts/${postId}`, {
+      await fetch(`/api/posts/${postId}/like`, {
         method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: 'like' }),
       });
       fetchData();
     } catch (e) {
@@ -395,11 +237,10 @@ export default function HomePage() {
                 <button
                   key={filter.key}
                   onClick={() => setFeedFilter(filter.key as typeof feedFilter)}
-                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                    feedFilter === filter.key 
-                      ? "bg-card shadow-sm font-medium" 
+                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${feedFilter === filter.key
+                      ? "bg-card shadow-sm font-medium"
                       : "hover:bg-card/50"
-                  }`}
+                    }`}
                 >
                   {filter.label}
                 </button>
@@ -411,20 +252,18 @@ export default function HomePage() {
               <div className="flex gap-2 overflow-x-auto pb-2 items-center">
                 <button
                   onClick={() => setShowHashtagSearch(!showHashtagSearch)}
-                  className={`px-2.5 py-1.5 rounded-full text-sm font-medium transition-colors flex-shrink-0 ${
-                    showHashtagSearch ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80 text-muted-foreground'
-                  }`}
+                  className={`px-2.5 py-1.5 rounded-full text-sm font-medium transition-colors flex-shrink-0 ${showHashtagSearch ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                    }`}
                   title="Search hashtags"
                 >
                   <SearchIcon className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setActiveServer('all')}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                    activeServer === 'all'
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${activeServer === 'all'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted hover:bg-muted/80 text-muted-foreground'
-                  }`}
+                    }`}
                 >
                   All
                 </button>
@@ -432,26 +271,16 @@ export default function HomePage() {
                   <button
                     key={server.slug}
                     onClick={() => setActiveServer(server.slug)}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-1 ${
-                      activeServer === server.slug
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-1 ${activeServer === server.slug
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted hover:bg-muted/80 text-muted-foreground'
-                    }`}
+                      }`}
                   >
                     <Hash className="w-3 h-3" />{server.slug}
                   </button>
                 ))}
-                {user && (
-                  <button
-                    onClick={() => setShowCreateServer(true)}
-                    className="px-2.5 py-1.5 rounded-full text-sm font-medium bg-muted hover:bg-muted/80 text-muted-foreground transition-colors flex-shrink-0"
-                    title="Create new hashtag"
-                  >
-                    <Plus className="w-3 h-3" />
-                  </button>
-                )}
               </div>
-              
+
               {/* Hashtag search dropdown */}
               {showHashtagSearch && (
                 <div className="mt-2 relative">
@@ -519,7 +348,7 @@ export default function HomePage() {
                   <p className="text-sm mt-1">Be the first to share!</p>
                 </div>
               ) : (
-                posts.map((post) => <PostCard key={post.id} post={post} onLike={handleLike} />)
+                posts.map((post) => <PostCard key={post.id} post={post} onLike={handleLike} user={user} onDelete={fetchData} />)
               )}
             </div>
           </div>

@@ -1,14 +1,23 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { posts, users } from '@/lib/db/schema';
+import { posts, users, notifications, sessions, comments, postHashtags } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { getAuthUser } from '@/lib/auth';
+import { notifyNewPost } from '@/lib/telegram-notify';
+import { getAutoReply } from '@/lib/ai-reply';
 
-// GET /api/posts - Get all posts (optional filter by server)
+const SESSION_COOKIE = 'alcatelz_session';
+
+function getUserIdFromCookies(cookieHeader: string | null): string | null {
+  if (!cookieHeader) return null;
+  const match = cookieHeader.match(new RegExp(`${SESSION_COOKIE}=([^;]+)`));
+  return match ? match[1] : null;
+}
+
+// GET /api/posts
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const serverSlug = searchParams.get('server') || 'alcatelz';
+    const serverSlug = undefined;
 
     const allPosts = await db
       .select({
@@ -18,15 +27,13 @@ export async function GET(request: Request) {
         imageUrl: posts.imageUrl,
         likesCount: posts.likesCount,
         commentsCount: posts.commentsCount,
-        serverSlug: posts.serverSlug,
         createdAt: posts.createdAt,
       })
       .from(posts)
-      .where(eq(posts.serverSlug, serverSlug))
+      
       .orderBy(desc(posts.createdAt))
       .limit(50);
 
-    // Get author names
     const postsWithAuthors = await Promise.all(
       allPosts.map(async (post) => {
         const [author] = await db
@@ -48,16 +55,37 @@ export async function GET(request: Request) {
   }
 }
 
-// POST /api/posts - Create a new post (requires auth)
+// POST /api/posts
 export async function POST(request: Request) {
   try {
-    const user = await getAuthUser();
-
-    if (!user) {
+    const cookieHeader = request.headers.get('cookie');
+    const sessionId = getUserIdFromCookies(cookieHeader);
+    
+    if (!sessionId) {
       return NextResponse.json({ error: 'You must be logged in to post' }, { status: 401 });
     }
 
-    const { content, imageUrl, serverSlug } = await request.json();
+    const [sessionData] = await db
+      .select({ userId: sessions.userId })
+      .from(sessions)
+      .where(eq(sessions.id, sessionId))
+      .limit(1);
+
+    if (!sessionData) {
+      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    }
+
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, sessionData.userId))
+      .limit(1);
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 401 });
+    }
+
+    const { content, imageUrl } = await request.json();
 
     if (!content || content.trim().length === 0) {
       return NextResponse.json({ error: 'Content is required' }, { status: 400 });
@@ -67,7 +95,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Content too long (max 5000 characters)' }, { status: 400 });
     }
 
-    const targetServer = serverSlug || 'alcatelz';
+    const targetServer = undefined;
 
     const [newPost] = await db
       .insert(posts)
@@ -75,9 +103,89 @@ export async function POST(request: Request) {
         authorId: user.id,
         content: content.trim(),
         imageUrl: imageUrl || null,
-        serverSlug: targetServer,
+        imageUrl: imageUrl || null,
       })
       .returning();
+
+    // Extract and store hashtags from content
+    const hashtagRegex = /#([a-zA-Z0-9_]+)/g;
+    const hashtags: string[] = [];
+    let match;
+    while ((match = hashtagRegex.exec(content)) !== null) {
+      hashtags.push(match[1].toLowerCase());
+    }
+    
+    // Remove duplicates and store hashtags
+    const uniqueHashtags = [...new Set(hashtags)];
+    if (uniqueHashtags.length > 0) {
+      await db.insert(postHashtags).values(
+        uniqueHashtags.map(tag => ({
+          postId: newPost.id,
+          hashtag: tag,
+        }))
+      );
+    }
+
+    // Send Telegram notification
+    await notifyNewPost(user.username, content, newPost.id);
+
+    // Notify all admins in database
+    try {
+      const admins = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.role, 'admin'))
+        .execute();
+
+      for (const admin of admins) {
+        await db
+          .insert(notifications)
+          .values({
+            userId: admin.id,
+            type: 'new_post',
+            message: `${user.name || user.username} postet: ${content.slice(0, 50)}...`,
+            link: `/post/${newPost.id}`,
+            read: false,
+          })
+          .execute();
+      }
+    } catch (error) {
+      console.error('notifyAllAdmins error:', error);
+    }
+
+    // AI Auto-reply from Alcatelz
+    const autoReply = getAutoReply(user.username);
+    if (autoReply && user.username !== 'alcatelz') {
+      try {
+        // Find Alcatelz user
+        const [alcatelz] = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(eq(users.username, 'alcatelz'))
+          .limit(1);
+
+        if (alcatelz) {
+          // Add comment from Alcatelz
+          await db
+            .insert(comments)
+            .values({
+              postId: newPost.id,
+              authorId: alcatelz.id,
+              content: autoReply,
+            })
+            .execute();
+
+          // Update comments count
+          await db
+            .update(posts)
+            .set({ commentsCount: (newPost.commentsCount || 0) + 1 })
+            .where(eq(posts.id, newPost.id))
+            .execute();
+        }
+      } catch (error) {
+        console.error('AI auto-reply error:', error);
+      }
+    }
 
     return NextResponse.json({
       ...newPost,

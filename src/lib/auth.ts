@@ -1,50 +1,59 @@
 import { db } from '@/lib/db';
 import { users, sessions } from '@/lib/db/schema';
 import { eq, and, gt } from 'drizzle-orm';
-import { cookies } from 'next/headers';
 
 const SESSION_COOKIE = 'alcatelz_session';
 
-export interface AuthUser {
+export interface SessionUser {
   id: string;
   username: string;
   name: string | null;
 }
 
-export async function getAuthUser(): Promise<AuthUser | null> {
-  try {
-    const cookieStore = await cookies();
-    const sessionId = cookieStore.get(SESSION_COOKIE)?.value;
+/**
+ * Validates session and returns user if valid.
+ * Checks:
+ * 1. Session exists and not expired
+ * 2. User still exists
+ * 3. User version matches session userVersion (prevents session reuse after user recreation)
+ */
+export async function validateSession(sessionId: string | undefined): Promise<SessionUser | null> {
+  if (!sessionId) return null;
 
-    if (!sessionId) return null;
-
-    const [session] = await db
-      .select()
-      .from(sessions)
-      .where(
-        and(
-          eq(sessions.id, sessionId),
-          gt(sessions.expiresAt, new Date())
-        )
+  const [session] = await db
+    .select()
+    .from(sessions)
+    .where(
+      and(
+        eq(sessions.id, sessionId),
+        gt(sessions.expiresAt, new Date())
       )
-      .limit(1);
+    )
+    .limit(1);
 
-    if (!session) return null;
+  if (!session) return null;
 
-    const [user] = await db
-      .select({
-        id: users.id,
-        username: users.username,
-        name: users.name,
-      })
-      .from(users)
-      .where(eq(users.id, session.userId))
-      .limit(1);
+  const [user] = await db
+    .select({
+      id: users.id,
+      username: users.username,
+      name: users.name,
+      version: users.version,
+    })
+    .from(users)
+    .where(eq(users.id, session.userId))
+    .limit(1);
 
-    return user || null;
-  } catch {
+  // CRITICAL: Version check prevents session reuse after user recreation
+  if (!user || user.version !== session.userVersion) {
+    // Delete the stale session
+    await db.delete(sessions).where(eq(sessions.id, sessionId));
     return null;
   }
-}
 
-export { SESSION_COOKIE };
+  return {
+    id: user.id,
+    username: user.username,
+    name: user.name,
+  };
+}

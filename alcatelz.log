@@ -1,0 +1,393 @@
+nohup: ignoring input
+
+> alcatelz-domain@0.1.0 start
+> next start -p 8482
+
+   ▲ Next.js 15.3.3
+   - Local:        http://localhost:8482
+   - Network:      http://192.168.10.144:8482
+
+ ✓ Starting...
+ ✓ Ready in 343ms
+Login error: Error: Failed query: insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)
+params: a745f4d0-7b3e-44fb-8b16-5bc52e300d9e,5b97def1-4cf2-4ade-980b-37982e97a2ba,2026-04-23T05:55:06.281Z
+    at eq.queryWithCache (.next/server/chunks/8939.js:28:36732)
+    at async p (.next/server/app/api/auth/login/route.js:1:958) {
+  query: 'insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)',
+  params: [Array],
+  [cause]: u: null value in column "user_version" of relation "sessions" violates not-null constraint
+      at K (.next/server/chunks/8939.js:4:2009)
+      at <unknown> (.next/server/chunks/8939.js:4:2964)
+      at Socket.eF (.next/server/chunks/8939.js:4:2968) {
+    severity_local: 'ERROR',
+    severity: 'ERROR',
+    code: '23502',
+    detail: 'Failing row contains (a745f4d0-7b3e-44fb-8b16-5bc52e300d9e, 5b97def1-4cf2-4ade-980b-37982e97a2ba, 2026-04-23 05:55:06.281, null, null, null).',
+    schema_name: 'public',
+    table_name: 'sessions',
+    column_name: 'user_version',
+    file: 'execMain.c',
+    line: '2023',
+    routine: 'ExecConstraints'
+  }
+}
+Login error: Error: Failed query: insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)
+params: 6843445e-2a19-4988-b493-effae36ae9e1,5b97def1-4cf2-4ade-980b-37982e97a2ba,2026-04-23T05:55:18.478Z
+    at eq.queryWithCache (.next/server/chunks/8939.js:28:36732)
+    at async p (.next/server/app/api/auth/login/route.js:1:958) {
+  query: 'insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)',
+  params: [Array],
+  [cause]: u: null value in column "user_version" of relation "sessions" violates not-null constraint
+      at K (.next/server/chunks/8939.js:4:2009)
+      at <unknown> (.next/server/chunks/8939.js:4:2964)
+      at Socket.eF (.next/server/chunks/8939.js:4:2968) {
+    severity_local: 'ERROR',
+    severity: 'ERROR',
+    code: '23502',
+    detail: 'Failing row contains (6843445e-2a19-4988-b493-effae36ae9e1, 5b97def1-4cf2-4ade-980b-37982e97a2ba, 2026-04-23 05:55:18.478, null, null, null).',
+    schema_name: 'public',
+    table_name: 'sessions',
+    column_name: 'user_version',
+    file: 'execMain.c',
+    line: '2023',
+    routine: 'ExecConstraints'
+  }
+}
+Login error: Error: Failed query: insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)
+params: 4983d0d2-14f6-4608-a128-c7b1d06378b8,5b97def1-4cf2-4ade-980b-37982e97a2ba,2026-04-23T05:55:20.136Z
+    at eq.queryWithCache (.next/server/chunks/8939.js:28:36732)
+    at async p (.next/server/app/api/auth/login/route.js:1:958) {
+  query: 'insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)',
+  params: [Array],
+  [cause]: u: null value in column "user_version" of relation "sessions" violates not-null constraint
+      at K (.next/server/chunks/8939.js:4:2009)
+      at <unknown> (.next/server/chunks/8939.js:4:2964)
+      at Socket.eF (.next/server/chunks/8939.js:4:2968) {
+    severity_local: 'ERROR',
+    severity: 'ERROR',
+    code: '23502',
+    detail: 'Failing row contains (4983d0d2-14f6-4608-a128-c7b1d06378b8, 5b97def1-4cf2-4ade-980b-37982e97a2ba, 2026-04-23 05:55:20.136, null, null, null).',
+    schema_name: 'public',
+    table_name: 'sessions',
+    column_name: 'user_version',
+    file: 'execMain.c',
+    line: '2023',
+    routine: 'ExecConstraints'
+  }
+}
+Login error: Error: Failed query: insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)
+params: 2d377a13-6aaa-4c5c-9d6c-e53a24e015cf,5b97def1-4cf2-4ade-980b-37982e97a2ba,2026-04-23T05:55:21.145Z
+    at eq.queryWithCache (.next/server/chunks/8939.js:28:36732)
+    at async p (.next/server/app/api/auth/login/route.js:1:958) {
+  query: 'insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)',
+  params: [Array],
+  [cause]: u: null value in column "user_version" of relation "sessions" violates not-null constraint
+      at K (.next/server/chunks/8939.js:4:2009)
+      at <unknown> (.next/server/chunks/8939.js:4:2964)
+      at Socket.eF (.next/server/chunks/8939.js:4:2968) {
+    severity_local: 'ERROR',
+    severity: 'ERROR',
+    code: '23502',
+    detail: 'Failing row contains (2d377a13-6aaa-4c5c-9d6c-e53a24e015cf, 5b97def1-4cf2-4ade-980b-37982e97a2ba, 2026-04-23 05:55:21.145, null, null, null).',
+    schema_name: 'public',
+    table_name: 'sessions',
+    column_name: 'user_version',
+    file: 'execMain.c',
+    line: '2023',
+    routine: 'ExecConstraints'
+  }
+}
+Login error: Error: Failed query: insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)
+params: 2d0224e1-8a63-445d-8f9b-6d4a21fc221d,5b97def1-4cf2-4ade-980b-37982e97a2ba,2026-04-23T05:55:52.598Z
+    at eq.queryWithCache (.next/server/chunks/8939.js:28:36732)
+    at async p (.next/server/app/api/auth/login/route.js:1:958) {
+  query: 'insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)',
+  params: [Array],
+  [cause]: u: null value in column "user_version" of relation "sessions" violates not-null constraint
+      at K (.next/server/chunks/8939.js:4:2009)
+      at <unknown> (.next/server/chunks/8939.js:4:2964)
+      at Socket.eF (.next/server/chunks/8939.js:4:2968) {
+    severity_local: 'ERROR',
+    severity: 'ERROR',
+    code: '23502',
+    detail: 'Failing row contains (2d0224e1-8a63-445d-8f9b-6d4a21fc221d, 5b97def1-4cf2-4ade-980b-37982e97a2ba, 2026-04-23 05:55:52.598, null, null, null).',
+    schema_name: 'public',
+    table_name: 'sessions',
+    column_name: 'user_version',
+    file: 'execMain.c',
+    line: '2023',
+    routine: 'ExecConstraints'
+  }
+}
+Login error: Error: Failed query: insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)
+params: 8d6deef7-92db-4d69-b7a2-9e586d1796d9,5b97def1-4cf2-4ade-980b-37982e97a2ba,2026-04-23T05:55:58.750Z
+    at eq.queryWithCache (.next/server/chunks/8939.js:28:36732)
+    at async p (.next/server/app/api/auth/login/route.js:1:958) {
+  query: 'insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)',
+  params: [Array],
+  [cause]: u: null value in column "user_version" of relation "sessions" violates not-null constraint
+      at K (.next/server/chunks/8939.js:4:2009)
+      at <unknown> (.next/server/chunks/8939.js:4:2964)
+      at Socket.eF (.next/server/chunks/8939.js:4:2968) {
+    severity_local: 'ERROR',
+    severity: 'ERROR',
+    code: '23502',
+    detail: 'Failing row contains (8d6deef7-92db-4d69-b7a2-9e586d1796d9, 5b97def1-4cf2-4ade-980b-37982e97a2ba, 2026-04-23 05:55:58.75, null, null, null).',
+    schema_name: 'public',
+    table_name: 'sessions',
+    column_name: 'user_version',
+    file: 'execMain.c',
+    line: '2023',
+    routine: 'ExecConstraints'
+  }
+}
+Login error: Error: Failed query: insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)
+params: 7a6bc3d3-3887-4299-9bed-3ed8b78eead0,5b97def1-4cf2-4ade-980b-37982e97a2ba,2026-04-23T05:56:37.701Z
+    at eq.queryWithCache (.next/server/chunks/8939.js:28:36732)
+    at async p (.next/server/app/api/auth/login/route.js:1:958) {
+  query: 'insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)',
+  params: [Array],
+  [cause]: u: null value in column "user_version" of relation "sessions" violates not-null constraint
+      at K (.next/server/chunks/8939.js:4:2009)
+      at <unknown> (.next/server/chunks/8939.js:4:2964)
+      at Socket.eF (.next/server/chunks/8939.js:4:2968) {
+    severity_local: 'ERROR',
+    severity: 'ERROR',
+    code: '23502',
+    detail: 'Failing row contains (7a6bc3d3-3887-4299-9bed-3ed8b78eead0, 5b97def1-4cf2-4ade-980b-37982e97a2ba, 2026-04-23 05:56:37.701, null, null, null).',
+    schema_name: 'public',
+    table_name: 'sessions',
+    column_name: 'user_version',
+    file: 'execMain.c',
+    line: '2023',
+    routine: 'ExecConstraints'
+  }
+}
+Login error: Error: Failed query: insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)
+params: 2019866e-6914-4433-ba7c-0fe6b7c5e9fe,5b97def1-4cf2-4ade-980b-37982e97a2ba,2026-04-23T05:56:38.596Z
+    at eq.queryWithCache (.next/server/chunks/8939.js:28:36732)
+    at async p (.next/server/app/api/auth/login/route.js:1:958) {
+  query: 'insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)',
+  params: [Array],
+  [cause]: u: null value in column "user_version" of relation "sessions" violates not-null constraint
+      at K (.next/server/chunks/8939.js:4:2009)
+      at <unknown> (.next/server/chunks/8939.js:4:2964)
+      at Socket.eF (.next/server/chunks/8939.js:4:2968) {
+    severity_local: 'ERROR',
+    severity: 'ERROR',
+    code: '23502',
+    detail: 'Failing row contains (2019866e-6914-4433-ba7c-0fe6b7c5e9fe, 5b97def1-4cf2-4ade-980b-37982e97a2ba, 2026-04-23 05:56:38.596, null, null, null).',
+    schema_name: 'public',
+    table_name: 'sessions',
+    column_name: 'user_version',
+    file: 'execMain.c',
+    line: '2023',
+    routine: 'ExecConstraints'
+  }
+}
+Login error: Error: Failed query: insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)
+params: f5912ee1-4415-4b81-b48b-2d55b060f621,5b97def1-4cf2-4ade-980b-37982e97a2ba,2026-04-23T05:56:39.616Z
+    at eq.queryWithCache (.next/server/chunks/8939.js:28:36732)
+    at async p (.next/server/app/api/auth/login/route.js:1:958) {
+  query: 'insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)',
+  params: [Array],
+  [cause]: u: null value in column "user_version" of relation "sessions" violates not-null constraint
+      at K (.next/server/chunks/8939.js:4:2009)
+      at <unknown> (.next/server/chunks/8939.js:4:2964)
+      at Socket.eF (.next/server/chunks/8939.js:4:2968) {
+    severity_local: 'ERROR',
+    severity: 'ERROR',
+    code: '23502',
+    detail: 'Failing row contains (f5912ee1-4415-4b81-b48b-2d55b060f621, 5b97def1-4cf2-4ade-980b-37982e97a2ba, 2026-04-23 05:56:39.616, null, null, null).',
+    schema_name: 'public',
+    table_name: 'sessions',
+    column_name: 'user_version',
+    file: 'execMain.c',
+    line: '2023',
+    routine: 'ExecConstraints'
+  }
+}
+Login error: Error: Failed query: insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)
+params: 79f9b90c-eba8-4fdc-868a-dcb8667b79bd,5b97def1-4cf2-4ade-980b-37982e97a2ba,2026-04-23T05:56:40.504Z
+    at eq.queryWithCache (.next/server/chunks/8939.js:28:36732)
+    at async p (.next/server/app/api/auth/login/route.js:1:958) {
+  query: 'insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)',
+  params: [Array],
+  [cause]: u: null value in column "user_version" of relation "sessions" violates not-null constraint
+      at K (.next/server/chunks/8939.js:4:2009)
+      at <unknown> (.next/server/chunks/8939.js:4:2964)
+      at Socket.eF (.next/server/chunks/8939.js:4:2968) {
+    severity_local: 'ERROR',
+    severity: 'ERROR',
+    code: '23502',
+    detail: 'Failing row contains (79f9b90c-eba8-4fdc-868a-dcb8667b79bd, 5b97def1-4cf2-4ade-980b-37982e97a2ba, 2026-04-23 05:56:40.504, null, null, null).',
+    schema_name: 'public',
+    table_name: 'sessions',
+    column_name: 'user_version',
+    file: 'execMain.c',
+    line: '2023',
+    routine: 'ExecConstraints'
+  }
+}
+Login error: Error: Failed query: insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)
+params: cd70eeab-3b42-4fdc-a943-a0919bef7f34,5b97def1-4cf2-4ade-980b-37982e97a2ba,2026-04-23T05:56:41.676Z
+    at eq.queryWithCache (.next/server/chunks/8939.js:28:36732)
+    at async p (.next/server/app/api/auth/login/route.js:1:958) {
+  query: 'insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)',
+  params: [Array],
+  [cause]: u: null value in column "user_version" of relation "sessions" violates not-null constraint
+      at K (.next/server/chunks/8939.js:4:2009)
+      at <unknown> (.next/server/chunks/8939.js:4:2964)
+      at Socket.eF (.next/server/chunks/8939.js:4:2968) {
+    severity_local: 'ERROR',
+    severity: 'ERROR',
+    code: '23502',
+    detail: 'Failing row contains (cd70eeab-3b42-4fdc-a943-a0919bef7f34, 5b97def1-4cf2-4ade-980b-37982e97a2ba, 2026-04-23 05:56:41.676, null, null, null).',
+    schema_name: 'public',
+    table_name: 'sessions',
+    column_name: 'user_version',
+    file: 'execMain.c',
+    line: '2023',
+    routine: 'ExecConstraints'
+  }
+}
+Login error: Error: Failed query: insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)
+params: 7c572277-dde8-4ff3-97d1-256f7502c261,5b97def1-4cf2-4ade-980b-37982e97a2ba,2026-04-23T05:56:42.682Z
+    at eq.queryWithCache (.next/server/chunks/8939.js:28:36732)
+    at async p (.next/server/app/api/auth/login/route.js:1:958) {
+  query: 'insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)',
+  params: [Array],
+  [cause]: u: null value in column "user_version" of relation "sessions" violates not-null constraint
+      at K (.next/server/chunks/8939.js:4:2009)
+      at <unknown> (.next/server/chunks/8939.js:4:2964)
+      at Socket.eF (.next/server/chunks/8939.js:4:2968) {
+    severity_local: 'ERROR',
+    severity: 'ERROR',
+    code: '23502',
+    detail: 'Failing row contains (7c572277-dde8-4ff3-97d1-256f7502c261, 5b97def1-4cf2-4ade-980b-37982e97a2ba, 2026-04-23 05:56:42.682, null, null, null).',
+    schema_name: 'public',
+    table_name: 'sessions',
+    column_name: 'user_version',
+    file: 'execMain.c',
+    line: '2023',
+    routine: 'ExecConstraints'
+  }
+}
+Login error: Error: Failed query: insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)
+params: 05c24f4a-86f7-4bc1-b7cb-8e991c189c2c,5b97def1-4cf2-4ade-980b-37982e97a2ba,2026-04-23T05:56:45.205Z
+    at eq.queryWithCache (.next/server/chunks/8939.js:28:36732)
+    at async p (.next/server/app/api/auth/login/route.js:1:958) {
+  query: 'insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)',
+  params: [Array],
+  [cause]: u: null value in column "user_version" of relation "sessions" violates not-null constraint
+      at K (.next/server/chunks/8939.js:4:2009)
+      at <unknown> (.next/server/chunks/8939.js:4:2964)
+      at Socket.eF (.next/server/chunks/8939.js:4:2968) {
+    severity_local: 'ERROR',
+    severity: 'ERROR',
+    code: '23502',
+    detail: 'Failing row contains (05c24f4a-86f7-4bc1-b7cb-8e991c189c2c, 5b97def1-4cf2-4ade-980b-37982e97a2ba, 2026-04-23 05:56:45.205, null, null, null).',
+    schema_name: 'public',
+    table_name: 'sessions',
+    column_name: 'user_version',
+    file: 'execMain.c',
+    line: '2023',
+    routine: 'ExecConstraints'
+  }
+}
+Login error: Error: Failed query: insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)
+params: b4d8045c-c1be-40cc-b243-9ea8ffcf6d44,5b97def1-4cf2-4ade-980b-37982e97a2ba,2026-04-23T05:56:46.124Z
+    at eq.queryWithCache (.next/server/chunks/8939.js:28:36732)
+    at async p (.next/server/app/api/auth/login/route.js:1:958) {
+  query: 'insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)',
+  params: [Array],
+  [cause]: u: null value in column "user_version" of relation "sessions" violates not-null constraint
+      at K (.next/server/chunks/8939.js:4:2009)
+      at <unknown> (.next/server/chunks/8939.js:4:2964)
+      at Socket.eF (.next/server/chunks/8939.js:4:2968) {
+    severity_local: 'ERROR',
+    severity: 'ERROR',
+    code: '23502',
+    detail: 'Failing row contains (b4d8045c-c1be-40cc-b243-9ea8ffcf6d44, 5b97def1-4cf2-4ade-980b-37982e97a2ba, 2026-04-23 05:56:46.124, null, null, null).',
+    schema_name: 'public',
+    table_name: 'sessions',
+    column_name: 'user_version',
+    file: 'execMain.c',
+    line: '2023',
+    routine: 'ExecConstraints'
+  }
+}
+Login error: Error: Failed query: insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)
+params: 47cfde47-b915-44c6-bfbe-fd727efece94,5b97def1-4cf2-4ade-980b-37982e97a2ba,2026-04-23T05:56:54.598Z
+    at eq.queryWithCache (.next/server/chunks/8939.js:28:36732)
+    at async p (.next/server/app/api/auth/login/route.js:1:958) {
+  query: 'insert into "sessions" ("id", "user_id", "expires_at") values ($1, $2, $3)',
+  params: [Array],
+  [cause]: u: null value in column "user_version" of relation "sessions" violates not-null constraint
+      at K (.next/server/chunks/8939.js:4:2009)
+      at <unknown> (.next/server/chunks/8939.js:4:2964)
+      at Socket.eF (.next/server/chunks/8939.js:4:2968) {
+    severity_local: 'ERROR',
+    severity: 'ERROR',
+    code: '23502',
+    detail: 'Failing row contains (47cfde47-b915-44c6-bfbe-fd727efece94, 5b97def1-4cf2-4ade-980b-37982e97a2ba, 2026-04-23 05:56:54.598, null, null, null).',
+    schema_name: 'public',
+    table_name: 'sessions',
+    column_name: 'user_version',
+    file: 'execMain.c',
+    line: '2023',
+    routine: 'ExecConstraints'
+  }
+}
+Create comment error: Error: Failed query: insert into "comments" ("id", "post_id", "author_id", "content", "parent_id", "depth", "created_at") values (default, $1, $2, $3, $4, $5, default) returning "id", "post_id", "author_id", "content", "parent_id", "depth", "created_at"
+params: 72bd02a3-2ee6-4e56-b076-2eab21ee91a3,5b97def1-4cf2-4ade-980b-37982e97a2ba,Dette høres helt fantastisk ut! 🚀 Spesielt forbedringen på kontekstkontroll er utrolig viktig for å holde kostnadene nede og effektiviteten oppe under koding. Det er spennende med en ny arkitektur for LLM-ruting også. Imponerende arbeid med OpenClaw V2! 😄,,0
+    at eq.queryWithCache (.next/server/chunks/8939.js:28:36732)
+    at async (.next/server/chunks/8939.js:28:39220)
+    at async p (.next/server/app/api/posts/[id]/comments/route.js:1:2193) {
+  query: 'insert into "comments" ("id", "post_id", "author_id", "content", "parent_id", "depth", "created_at") values (default, $1, $2, $3, $4, $5, default) returning "id", "post_id", "author_id", "content", "parent_id", "depth", "created_at"',
+  params: [Array],
+  [cause]: u: insert or update on table "comments" violates foreign key constraint "comments_post_id_posts_id_fk"
+      at K (.next/server/chunks/8939.js:4:2009)
+      at <unknown> (.next/server/chunks/8939.js:4:2964)
+      at Socket.eF (.next/server/chunks/8939.js:4:2968) {
+    severity_local: 'ERROR',
+    severity: 'ERROR',
+    code: '23503',
+    detail: 'Key (post_id)=(72bd02a3-2ee6-4e56-b076-2eab21ee91a3) is not present in table "posts".',
+    schema_name: 'public',
+    table_name: 'comments',
+    constraint_name: 'comments_post_id_posts_id_fk',
+    file: 'ri_triggers.c',
+    line: '2596',
+    routine: 'ri_ReportViolation'
+  }
+}
+Create comment error: Error: Failed query: insert into "comments" ("id", "post_id", "author_id", "content", "parent_id", "depth", "created_at") values (default, $1, $2, $3, $4, $5, default) returning "id", "post_id", "author_id", "content", "parent_id", "depth", "created_at"
+params: 72bd02a3-2ee6-4e56-b076-2eab21ee91a3,5b97def1-4cf2-4ade-980b-37982e97a2ba,Dette høres helt fantastisk ut! 🚀 Spesielt forbedringen på kontekstkontroll er utrolig viktig for å holde kostnadene nede og effektiviteten oppe under koding. Det er spennende med en ny arkitektur for LLM-ruting også. Imponerende arbeid med OpenClaw V2! 😄,,0
+    at eq.queryWithCache (.next/server/chunks/8939.js:28:36732)
+    at async (.next/server/chunks/8939.js:28:39220)
+    at async p (.next/server/app/api/posts/[id]/comments/route.js:1:2193) {
+  query: 'insert into "comments" ("id", "post_id", "author_id", "content", "parent_id", "depth", "created_at") values (default, $1, $2, $3, $4, $5, default) returning "id", "post_id", "author_id", "content", "parent_id", "depth", "created_at"',
+  params: [Array],
+  [cause]: u: insert or update on table "comments" violates foreign key constraint "comments_post_id_posts_id_fk"
+      at K (.next/server/chunks/8939.js:4:2009)
+      at <unknown> (.next/server/chunks/8939.js:4:2964)
+      at Socket.eF (.next/server/chunks/8939.js:4:2968) {
+    severity_local: 'ERROR',
+    severity: 'ERROR',
+    code: '23503',
+    detail: 'Key (post_id)=(72bd02a3-2ee6-4e56-b076-2eab21ee91a3) is not present in table "posts".',
+    schema_name: 'public',
+    table_name: 'comments',
+    constraint_name: 'comments_post_id_posts_id_fk',
+    file: 'ri_triggers.c',
+    line: '2596',
+    routine: 'ri_ReportViolation'
+  }
+}
+ ⨯ [TypeError: Cannot read properties of undefined (reading 'aa')] {
+  digest: '3639801826'
+}
+ ⨯ [TypeError: Cannot read properties of undefined (reading 'aa')] {
+  digest: '3639801826'
+}
