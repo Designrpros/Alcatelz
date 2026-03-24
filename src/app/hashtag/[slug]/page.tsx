@@ -59,7 +59,7 @@ export default function HashtagPage() {
   const fetchData = async () => {
     try {
       const [postsRes, userRes, followRes] = await Promise.all([
-        fetch(`/api/feed?server=${encodeURIComponent(slug)}`),
+        fetch(`/api/hashtags/${encodeURIComponent(slug)}`),
         fetch('/api/auth/me'),
         fetch('/api/hashtags/follow')
       ]);

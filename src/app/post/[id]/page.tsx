@@ -1,16 +1,24 @@
-/* eslint-disable */
 "use client";
+
 import { useEffect, useState } from "react";
-import { SimpleMarkdown } from "@/components/simple-markdown";
-import { useParams } from "next/navigation";
-import Link from "next/link";
-import { Sidebar } from "@/components/ui/sidebar";
-import { Inspector } from "@/components/ui/inspector";
-import { BottomDock } from "@/components/ui/bottom-dock";
-import { useUIStore } from "@/lib/ui-store";
-import { Bot, MessageCircle, ArrowLeft, Send, Reply } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { Heart, MessageCircle, Pencil, Trash2, ArrowLeft, MoreHorizontal } from "lucide-react";
 
+interface User {
+  id: string;
+  username: string;
+  name: string | null;
+  role?: string;
+}
 
+interface Comment {
+  id: string;
+  authorId: string;
+  authorName: string;
+  content: string;
+  createdAt: string;
+  replies?: Comment[];
+}
 
 interface Post {
   id: string;
@@ -22,141 +30,117 @@ interface Post {
   likesCount: number;
   commentsCount: number;
   createdAt: string;
-}
-
-interface Comment {
-  id: string;
-  authorId: string;
-  authorName: string;
-  authorUsername: string;
-  content: string;
-  parentId: string | null;
-  depth: number;
-  createdAt: string;
-  replies: Comment[];
+  liked?: boolean;
 }
 
 export default function PostPage() {
   const params = useParams();
-  const postId = params.id as string;
-  const { isSidebarOpen, isInspectorOpen } = useUIStore();
-  
+  const router = useRouter();
   const [post, setPost] = useState<Post | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [commentText, setCommentText] = useState("");
-  const [replyingTo, setReplyingTo] = useState<{id: string, name: string} | null>(null);
-  const [user, setUser] = useState<any>(null);
+  const [newComment, setNewComment] = useState("");
+  const [replyTo, setReplyTo] = useState<Comment | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editContent, setEditContent] = useState("");
 
   useEffect(() => {
     fetchPost();
-    fetchComments();
     fetchUser();
-  }, [postId]);
+  }, [params.id]);
 
-  async function fetchPost() {
+  const fetchPost = async () => {
     try {
-      const res = await fetch(`/api/posts/${postId}`);
+      const res = await fetch("/api/posts/" + params.id);
       if (res.ok) {
         const data = await res.json();
-        setPost(data as Post);
+        // API returns post directly, not as { post: ... }
+        setPost(data.post || data);
+        setComments(data.comments || []);
       }
-    } catch (error) {
-      console.error("Failed to fetch post:", error);
+    } catch (err) {
+      console.error("Failed to fetch post:", err);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  async function fetchComments() {
-    try {
-      const res = await fetch(`/api/posts/${postId}/comments`);
-      if (res.ok) {
-        const data = await res.json();
-        setComments(data.comments || []);
-      }
-    } catch (error) {
-      console.error("Failed to fetch comments:", error);
-    }
-  }
-
-  async function fetchUser() {
+  const fetchUser = async () => {
     try {
       const res = await fetch("/api/auth/me");
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
       }
-    } catch {}
-  }
+    } catch (err) {
+      console.error("Failed to fetch user:", err);
+    }
+  };
 
-  async function submitComment() {
-    if (!commentText.trim()) return;
-    
+  const handleLike = async () => {
     try {
-      await fetch(`/api/posts/${postId}/comments?postId=${postId}`, {
+      const res = await fetch("/api/posts/" + params.id + "/like", { method: "POST" });
+      if (res.ok) {
+        fetchPost();
+      }
+    } catch (err) {
+      console.error("Failed to like:", err);
+    }
+  };
+
+  const handleComment = async () => {
+    if (!newComment.trim()) return;
+    try {
+      const res = await fetch("/api/posts/" + params.id + "/comments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          content: commentText,
-          parentId: replyingTo?.id || null 
-        }),
+        body: JSON.stringify({ content: newComment, parentId: replyTo?.id })
       });
-      setCommentText("");
-      setReplyingTo(null);
-      fetchComments();
-    } catch (error) {
-      console.error("Failed to comment:", error);
+      if (res.ok) {
+        setNewComment("");
+        setReplyTo(null);
+        fetchPost();
+      }
+    } catch (err) {
+      console.error("Failed to comment:", err);
     }
-  }
+  };
 
-  function timeAgo(date: string) {
-    const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
-    if (seconds < 60) return "just now";
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h`;
-    return `${Math.floor(hours / 24)}d`;
-  }
+  const handleEdit = async () => {
+    if (!editContent.trim() || !post) return;
+    try {
+      const res = await fetch("/api/posts/" + post.id, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: editContent })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.post) setPost(data.post as Post);
+        setEditing(false);
+      }
+    } catch (err) {
+      console.error("Failed to edit:", err);
+    }
+  };
 
-  function renderComment(comment: Comment, depth = 0) {
-    return (
-      <div key={comment.id} className={`${depth > 0 ? "ml-4 pl-4 border-l border-border" : ""}`}>
-        <div className="py-2">
-          <div className="flex items-center gap-2 mb-1">
-            <Link href={`/users/${comment.authorUsername}`} className="font-medium text-sm hover:underline">
-              {comment.authorName || comment.authorUsername}
-            </Link>
-            <span className="text-xs text-muted-foreground">
-              @{comment.authorUsername}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              • {timeAgo(comment.createdAt)}
-            </span>
-          </div>
-          <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
-          <div className="flex items-center gap-3 mt-2">
-            <button 
-              onClick={() => setReplyingTo({ id: comment.id, name: comment.authorUsername })}
-              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-            >
-              <Reply className="w-3 h-3" /> Reply
-            </button>
-          </div>
-        </div>
-        {comment.replies && comment.replies.length > 0 && (
-          <div className="mt-1">
-            {comment.replies.map((reply: Comment) => renderComment(reply, depth + 1))}
-          </div>
-        )}
-      </div>
-    );
-  }
+  const handleDelete = async () => {
+    if (!confirm("Delete this post?")) return;
+    try {
+      const res = await fetch("/api/posts/" + params.id, { method: "DELETE" });
+      if (res.ok) {
+        router.push("/");
+      }
+    } catch (err) {
+      console.error("Failed to delete:", err);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen">
         <p className="text-muted-foreground">Loading...</p>
       </div>
     );
@@ -164,117 +148,162 @@ export default function PostPage() {
 
   if (!post) {
     return (
-      <div className="h-screen bg-background flex items-center justify-center">
+      <div className="flex flex-col items-center justify-center min-h-screen">
         <p className="text-muted-foreground">Post not found</p>
+        <button onClick={() => router.push("/")} className="mt-4 text-primary hover:underline">
+          Back to home
+        </button>
       </div>
     );
   }
 
+  const isOwner = user?.id === post.authorId;
+  const canEdit = isOwner || user?.role === "admin";
+
   return (
-    <div className="h-screen bg-background flex overflow-hidden">
-      {isSidebarOpen && (
-        <div className="w-64 flex-shrink-0 border-r border-border overflow-y-auto">
-          <Sidebar />
-        </div>
-      )}
-
-      <div className="flex-1 flex flex-col min-w-0">
-        <main className="flex-1 overflow-y-auto pb-20">
-          <div className="max-w-2xl mx-auto px-4 py-6">
-            {/* Back button */}
-            <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4">
-              <ArrowLeft className="w-4 h-4" /> Back to feed
-            </Link>
-
-            {/* Post */}
-            <article className="border border-border rounded-lg p-4 bg-card mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <Link href={`/users/${post.authorUsername}`} className="font-medium hover:underline">
-                    {post.authorName || post.authorUsername}
-                  </Link>
-                  <p className="text-sm text-muted-foreground">@{post.authorUsername}</p>
-                </div>
-              </div>
-              
-              <div className="prose dark:prose-invert max-w-none">
-                <SimpleMarkdown content={post.content} />
-              </div>
-
-              <div className="flex items-center gap-4 mt-4 pt-4 border-t border-border text-sm text-muted-foreground">
-                <span>{timeAgo(post.createdAt)}</span>
-                <span>{post.commentsCount || 0} comments</span>
-                <span>{post.likesCount || 0} likes</span>
-              </div>
-            </article>
-
-            {/* Comment form */}
-            <div className="border border-border rounded-lg p-4 bg-card mb-6">
-              <div className="flex items-start gap-3">
-                {user ? (
-                  <>
-                    <textarea
-                      value={commentText}
-                      onChange={(e) => setCommentText(e.target.value)}
-                      placeholder={replyingTo ? `Reply to @${replyingTo.name}...` : "Write a comment..."}
-                      className="flex-1 bg-background border border-border rounded-md p-2 resize-none h-20"
-                    />
-                    <button
-                      onClick={submitComment}
-                      disabled={!commentText.trim()}
-                      className="p-2 bg-primary text-primary-foreground rounded-md disabled:opacity-50"
-                    >
-                      <Send className="w-5 h-5" />
-                    </button>
-                  </>
-                ) : (
-                  <p className="text-muted-foreground">
-                    <Link href="/auth" className="text-primary hover:underline">Log in</Link> to comment
-                  </p>
-                )}
-              </div>
-              {replyingTo && (
-                <div className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
-                  Replying to @{replyingTo.name}
-                  <button 
-                    onClick={() => setReplyingTo(null)}
-                    className="text-red-500 hover:underline"
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
+        <div className="flex items-center gap-4 px-4 py-3">
+          <button onClick={() => router.push("/")} className="p-2 rounded-full hover:bg-muted">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="font-semibold">Post</h1>
+          {canEdit && !editing && (
+            <div className="relative ml-auto">
+              <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 rounded-full hover:bg-muted">
+                <MoreHorizontal className="w-5 h-5" />
+              </button>
+              {menuOpen && (
+                <div className="absolute right-0 top-12 bg-card border rounded-md shadow-lg z-50 min-w-[140px]">
+                  <button
+                    onClick={() => { setEditContent(post.content); setEditing(true); setMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-muted"
                   >
-                    Cancel
+                    <Pencil className="w-4 h-4" /> Edit
+                  </button>
+                  <button
+                    onClick={() => { handleDelete(); setMenuOpen(false); }}
+                    className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-500 hover:bg-muted"
+                  >
+                    <Trash2 className="w-4 h-4" /> Delete
                   </button>
                 </div>
               )}
             </div>
-
-            {/* Comments */}
-            <div>
-              <h2 className="font-medium mb-4 flex items-center gap-2">
-                <MessageCircle className="w-5 h-5" /> Comments ({comments.length})
-              </h2>
-              
-              {comments.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  No comments yet. Be the first to comment!
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {comments.map((comment) => renderComment(comment))}
-                </div>
-              )}
+          )}
+        </div>
+      </header>
+      <main className="max-w-2xl mx-auto px-4 py-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+            <span className="text-lg font-semibold">{post.authorName?.[0]?.toUpperCase()}</span>
+          </div>
+          <div>
+            <p className="font-semibold">{post.authorName}</p>
+            <p className="text-sm text-muted-foreground">@{post.authorUsername}</p>
+          </div>
+        </div>
+        {editing ? (
+          <div className="mb-6">
+            <textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              className="w-full p-3 bg-muted rounded-md resize-none border"
+              rows={5}
+              autoFocus
+            />
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={handleEdit}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => { setEditing(false); setEditContent(post.content); }}
+                className="px-4 py-2 bg-muted rounded-md hover:bg-muted/80"
+              >
+                Cancel
+              </button>
             </div>
           </div>
-        </main>
-        <BottomDock />
-      </div>
-
-      {isInspectorOpen && (
-        <div className="w-80 flex-shrink-0 border-l border-border overflow-y-auto">
-          <Inspector />
+        ) : (
+          <div className="mb-6">
+            {post.content.split('\n').map((line: string, i: number) => (
+              <p key={i} className={line.match(/^#+ /) ? 'text-xl font-bold mb-2' : 'mb-1'}>{line}</p>
+            ))}
+          </div>
+        )}
+        <div className="flex items-center gap-6 py-4 border-t border-b">
+          <button
+            onClick={handleLike}
+            className={"flex items-center gap-2 hover:text-red-500 transition-colors " + (post.liked ? "text-red-500" : "")}
+          >
+            <Heart className={"w-5 h-5 " + (post.liked ? "fill-current" : "")} />
+            <span>{post.likesCount}</span>
+          </button>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <MessageCircle className="w-5 h-5" />
+            <span>{post.commentsCount}</span>
+          </div>
         </div>
-      )}
+        <div className="mt-6">
+          <h2 className="font-semibold mb-4">Comments</h2>
+          <div className="mb-6">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Add a comment..."
+              className="w-full p-3 bg-muted rounded-md resize-none border"
+              rows={3}
+            />
+            {replyTo && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Replying to @{replyTo.authorUsername}{" "}
+                <button onClick={() => setReplyTo(null)} className="text-primary hover:underline">
+                  Cancel
+                </button>
+              </p>
+            )}
+            <button
+              onClick={handleComment}
+              disabled={!newComment.trim()}
+              className="mt-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
+            >
+              Comment
+            </button>
+          </div>
+          <div className="space-y-4">
+            {comments.map((c) => (
+              <CommentItem key={c.id} comment={c} onReply={setReplyTo} />
+            ))}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function CommentItem({ comment, onReply }: { comment: Comment; onReply: (c: Comment) => void }) {
+  return (
+    <div className="pl-4 border-l-2">
+      <div className="flex items-start gap-2">
+        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+          <span className="text-sm font-semibold">{comment.authorName?.[0]?.toUpperCase()}</span>
+        </div>
+        <div className="flex-1">
+          <p className="text-sm">
+            <span className="font-semibold">{comment.authorName}</span>
+          </p>
+          <p className="mt-1 text-sm">{comment.content}</p>
+          <button onClick={() => onReply(comment)} className="text-xs text-muted-foreground hover:text-primary mt-1">
+            Reply
+          </button>
+          {comment.replies?.map((r) => (
+            <CommentItem key={r.id} comment={r} onReply={onReply} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { posts, users, notifications, sessions, comments } from '@/lib/db/schema';
+import { posts, users, notifications, sessions, comments, postHashtags } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { notifyNewPost } from '@/lib/telegram-notify';
 import { getAutoReply } from '@/lib/ai-reply';
@@ -17,7 +17,7 @@ function getUserIdFromCookies(cookieHeader: string | null): string | null {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const serverSlug = searchParams.get('server') || 'alcatelz';
+    const serverSlug = undefined;
 
     const allPosts = await db
       .select({
@@ -27,11 +27,10 @@ export async function GET(request: Request) {
         imageUrl: posts.imageUrl,
         likesCount: posts.likesCount,
         commentsCount: posts.commentsCount,
-        serverSlug: posts.serverSlug,
         createdAt: posts.createdAt,
       })
       .from(posts)
-      .where(eq(posts.serverSlug, serverSlug))
+      
       .orderBy(desc(posts.createdAt))
       .limit(50);
 
@@ -86,7 +85,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 401 });
     }
 
-    const { content, imageUrl, serverSlug } = await request.json();
+    const { content, imageUrl } = await request.json();
 
     if (!content || content.trim().length === 0) {
       return NextResponse.json({ error: 'Content is required' }, { status: 400 });
@@ -96,7 +95,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Content too long (max 5000 characters)' }, { status: 400 });
     }
 
-    const targetServer = serverSlug || 'alcatelz';
+    const targetServer = undefined;
 
     const [newPost] = await db
       .insert(posts)
@@ -104,9 +103,28 @@ export async function POST(request: Request) {
         authorId: user.id,
         content: content.trim(),
         imageUrl: imageUrl || null,
-        serverSlug: targetServer,
+        imageUrl: imageUrl || null,
       })
       .returning();
+
+    // Extract and store hashtags from content
+    const hashtagRegex = /#([a-zA-Z0-9_]+)/g;
+    const hashtags: string[] = [];
+    let match;
+    while ((match = hashtagRegex.exec(content)) !== null) {
+      hashtags.push(match[1].toLowerCase());
+    }
+    
+    // Remove duplicates and store hashtags
+    const uniqueHashtags = [...new Set(hashtags)];
+    if (uniqueHashtags.length > 0) {
+      await db.insert(postHashtags).values(
+        uniqueHashtags.map(tag => ({
+          postId: newPost.id,
+          hashtag: tag,
+        }))
+      );
+    }
 
     // Send Telegram notification
     await notifyNewPost(user.username, content, newPost.id);

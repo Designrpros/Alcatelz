@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { posts, users } from '@/lib/db/schema';
-import { eq, like, or, desc } from 'drizzle-orm';
+import { eq, or, desc, sql } from 'drizzle-orm';
 
 // GET /api/search - Search posts and users
 export async function GET(request: Request) {
@@ -23,7 +23,6 @@ export async function GET(request: Request) {
         .select({
           id: posts.id,
           content: posts.content,
-          serverSlug: posts.serverSlug,
           likesCount: posts.likesCount,
           commentsCount: posts.commentsCount,
           createdAt: posts.createdAt,
@@ -32,8 +31,8 @@ export async function GET(request: Request) {
         .from(posts)
         .where(
           or(
-            like(posts.content, `%${q}%`),
-            like(posts.serverSlug, `%${q}%`)
+            sql`posts.content ILIKE ${'%' + q + '%'}`,
+            sql`posts.server_slug ILIKE ${'%' + q + '%'}`
           )
         )
         .orderBy(desc(posts.createdAt))
@@ -68,8 +67,8 @@ export async function GET(request: Request) {
         .from(users)
         .where(
           or(
-            like(users.username, `%${q}%`),
-            like(users.name, `%${q}%`)
+            sql`users.username ILIKE ${'%' + q + '%'}`,
+            sql`users.name ILIKE ${'%' + q + '%'}`
           )
         )
         .limit(limit);

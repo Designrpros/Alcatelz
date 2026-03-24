@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { comments, users, posts } from '@/lib/db/schema';
+import { comments, users, posts, sessions } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { getAutoReply } from '@/lib/ai-reply';
 
@@ -87,8 +87,9 @@ export async function POST(request: Request) {
     }
 
     const [sessionData]: any = await db
-      .select({ userId: users.id })
-      .from(users)
+      .select({ userId: sessions.userId })
+      .from(sessions)
+      .where(eq(sessions.id, sessionId))
       .limit(1)
       .execute();
 

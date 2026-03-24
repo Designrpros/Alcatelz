@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import Link from "next/link";
 import { Image as ImageIcon, Send, Upload, LogIn, Hash } from "lucide-react";
 
@@ -21,6 +21,12 @@ export function PostComposer({ onPost, user, serverSlug }: PostComposerProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Extract hashtags from content
+    const extractedHashtags = useMemo(() => {
+        const matches = content.match(/#([a-zA-Z0-9_]+)/g) || [];
+        return [...new Set(matches.map(h => h.slice(1).toLowerCase()))];
+    }, [content]);
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -73,10 +79,25 @@ export function PostComposer({ onPost, user, serverSlug }: PostComposerProps) {
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 onFocus={() => setIsExpanded(true)}
-                placeholder={`What would you like to share in #${serverSlug}?`}
+                placeholder="What's on your mind? Use #hashtags to categorize..."
                 className="w-full bg-transparent resize-none outline-none text-sm placeholder:text-muted-foreground min-h-[60px]"
                 rows={isExpanded ? 4 : 2}
             />
+
+            {/* Extracted hashtags preview */}
+            {isExpanded && extractedHashtags.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                    {extractedHashtags.map((tag) => (
+                        <span
+                            key={tag}
+                            className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full font-medium"
+                        >
+                            #{tag}
+                        </span>
+                    ))}
+                </div>
+            )}
+
             {isExpanded && (
                 <>
                     {imageUrl && (
@@ -110,18 +131,13 @@ export function PostComposer({ onPost, user, serverSlug }: PostComposerProps) {
                                 <ImageIcon className="w-4 h-4 text-muted-foreground" />
                             )}
                         </button>
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs text-muted-foreground">
-                                <Hash className="w-3 h-3 inline" />{serverSlug}
-                            </span>
-                            <button
-                                onClick={handleSubmit}
-                                disabled={!content.trim()}
-                                className="px-4 py-1.5 bg-primary text-primary-foreground text-sm rounded-md font-medium disabled:opacity-40 hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-1"
-                            >
-                                <Send className="w-3 h-3" /> Post
-                            </button>
-                        </div>
+                        <button
+                            onClick={handleSubmit}
+                            disabled={!content.trim()}
+                            className="px-4 py-1.5 bg-primary text-primary-foreground text-sm rounded-md font-medium disabled:opacity-40 hover:opacity-90 transition-opacity cursor-pointer flex items-center gap-1"
+                        >
+                            <Send className="w-3 h-3" /> Post
+                        </button>
                     </div>
                 </>
             )}

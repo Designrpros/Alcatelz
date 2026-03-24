@@ -38,7 +38,7 @@ export const servers = pgTable('servers', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-// Posts table (now with serverSlug)
+// Posts table (hashtags extracted automatically)
 export const posts = pgTable('posts', {
   id: uuid('id').primaryKey().defaultRandom(),
   authorId: uuid('author_id').references(() => users.id).notNull(),
@@ -46,7 +46,6 @@ export const posts = pgTable('posts', {
   imageUrl: text('image_url'),
   likesCount: integer('likes_count').default(0),
   commentsCount: integer('comments_count').default(0),
-  serverSlug: varchar('server_slug', { length: 50 }).default('alcatelz'), // which server: 'alcatelz', 'creative', 'ai'
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -117,6 +116,14 @@ export const notificationPreferences = pgTable('notification_preferences', {
   notifyFollow: boolean('notify_follow').default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Post hashtags table (auto-extracted from content)
+export const postHashtags = pgTable('post_hashtags', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  postId: uuid('post_id').references(() => posts.id, { onDelete: 'cascade' }).notNull(),
+  hashtag: varchar('hashtag', { length: 100 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
 // Comments table with threaded replies

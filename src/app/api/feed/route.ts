@@ -7,7 +7,7 @@ import { desc, eq } from 'drizzle-orm';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const serverSlug = searchParams.get('server') || undefined;
+    const serverSlug = undefined;
 
     // Get posts with optional server filter
     let query = db
@@ -18,7 +18,6 @@ export async function GET(request: Request) {
         imageUrl: posts.imageUrl,
         likesCount: posts.likesCount,
         commentsCount: posts.commentsCount,
-        serverSlug: posts.serverSlug,
         createdAt: posts.createdAt,
       })
       .from(posts)
@@ -26,9 +25,6 @@ export async function GET(request: Request) {
       .limit(50);
 
     // Only filter if serverSlug is specified and not "all"
-    if (serverSlug && serverSlug !== 'all') {
-      query = query.where(eq(posts.serverSlug, serverSlug)) as typeof query;
-    }
 
     const allPosts = await query;
 

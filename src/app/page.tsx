@@ -51,13 +51,7 @@ function formatTimeAgo(dateString: string): string {
 
 export default function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [servers, setServers] = useState<Server[]>([
-    { id: 'alcatelz', slug: 'alcatelz', name: 'Alcatelz' },
-    { id: 'ai', slug: 'ai', name: 'AI' },
-    { id: 'creative', slug: 'creative', name: 'Creative' },
-    { id: 'coding', slug: 'coding', name: 'Coding' },
-    { id: 'news', slug: 'news', name: 'News' },
-  ]);
+  const [servers, setServers] = useState<Server[]>([]);
   const [activeServer, setActiveServer] = useState('all');
   const [feedFilter, setFeedFilter] = useState<'all' | 'hot' | 'trending'>('all');
   const [loading, setLoading] = useState(true);
@@ -84,7 +78,7 @@ export default function HomePage() {
       try {
         const res = await fetch(`/api/hashtags?q=${encodeURIComponent(hashtagSearch)}`);
         const data = await res.json();
-        setSearchResults(data.hashtags || []);
+        setSearchResults((data.hashtags || []).map((t: { hashtag: string; count: string | number }) => ({ slug: t.hashtag, count: Number(t.count) })));
       } catch (e) {
         console.error('Failed to search hashtags:', e);
       }
@@ -104,10 +98,24 @@ export default function HomePage() {
 
   const fetchData = async () => {
     try {
-      const serverParam = activeServer === 'all' ? '' : `server=${activeServer}`;
-      const res = await fetch(`/api/feed?${serverParam}`);
-      const jsonData = await res.json();
-      let allPosts = jsonData.posts || [];
+      let allPosts;
+      
+      // Simplified - all filters are hashtags
+      
+      if (activeServer === 'all') {
+        const res = await fetch('/api/feed');
+        const jsonData = await res.json();
+        allPosts = jsonData.posts || [];
+      } else {
+        // It's a hashtag - use hashtag API
+        const res = await fetch(`/api/hashtags/${encodeURIComponent(activeServer)}`);
+        if (res.ok) {
+          const data = await res.json();
+          allPosts = data.posts || [];
+        } else {
+          allPosts = [];
+        }
+      }
 
       // Apply feed filter
       if (feedFilter === 'hot') {
@@ -130,13 +138,21 @@ export default function HomePage() {
       // 'all' - keep chronological order
 
       setPosts(allPosts);
-      // Merge API servers with defaults, don't overwrite
-      if (jsonData.servers && jsonData.servers.length > 0) {
-        setServers(prev => {
-          const existingSlugs = new Set(prev.map(s => s.slug));
-          const newServers = jsonData.servers.filter((s: Server) => !existingSlugs.has(s.slug));
-          return [...prev, ...newServers];
-        });
+      
+      // Fetch popular hashtags and use them as servers
+      try {
+        const hashtagsRes = await fetch('/api/hashtags');
+        const hashtagsData = await hashtagsRes.json();
+        if (hashtagsData.hashtags && hashtagsData.hashtags.length > 0) {
+          const hashtagServers = hashtagsData.hashtags.map((h: { hashtag: string; count: number }) => ({
+            id: h.hashtag,
+            slug: h.hashtag,
+            name: h.hashtag
+          }));
+          setServers(hashtagServers);
+        }
+      } catch (e) {
+        console.error('Failed to fetch hashtags:', e);
       }
     } catch (e) {
       console.error('Failed to fetch posts:', e);
@@ -263,15 +279,6 @@ export default function HomePage() {
                     <Hash className="w-3 h-3" />{server.slug}
                   </button>
                 ))}
-                {user && (
-                  <button
-                    onClick={() => setShowCreateServer(true)}
-                    className="px-2.5 py-1.5 rounded-full text-sm font-medium bg-muted hover:bg-muted/80 text-muted-foreground transition-colors flex-shrink-0"
-                    title="Create new hashtag"
-                  >
-                    <Plus className="w-3 h-3" />
-                  </button>
-                )}
               </div>
 
               {/* Hashtag search dropdown */}

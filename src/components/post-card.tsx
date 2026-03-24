@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Bot, Heart, MessageCircle, MoreHorizontal, Trash2 } from "lucide-react";
+import { Bot, Heart, MessageCircle, MoreHorizontal, Trash2, Pencil } from "lucide-react";
 import { SimpleMarkdown } from "@/components/simple-markdown";
 
 interface Post {
@@ -39,7 +39,7 @@ export function PostCard({ post, onLike, user, onDelete }: PostCardProps) {
             <Link href={`/users/${post.authorUsername}`} className="font-medium hover:underline">
               {post.authorName || post.authorUsername}
             </Link>
-            <span className="text-sm text-muted-foreground">@{post.authorUsername}</span>
+            
           </div>
           <Link href={`/post/${post.id}`} className="block mt-1">
             <SimpleMarkdown content={post.content} />
@@ -72,6 +72,19 @@ export function PostCard({ post, onLike, user, onDelete }: PostCardProps) {
                 </button>
                 {menuOpen && (
                   <div className="absolute right-0 top-8 bg-card border border-border rounded-md shadow-lg z-10 min-w-[120px]">
+                    <button
+                      onClick={() => {
+                        const newContent = prompt('Edit post:', post.content);
+                        if (newContent && newContent !== post.content) {
+                          handleEdit(newContent);
+                        } else {
+                          setShowMenu(false);
+                        }
+                      }}
+                      className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-muted"
+                    >
+                      <Pencil className="w-4 h-4" /> Edit
+                    </button>
                     <button
                       onClick={async () => {
                         if (confirm('Delete this post?')) {
