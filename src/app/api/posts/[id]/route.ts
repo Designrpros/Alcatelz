@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { posts, likes, comments } from '@/lib/db/schema';
+import { posts, users, likes, comments } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { getAuthUser } from '@/lib/auth';
 
@@ -131,6 +131,13 @@ export async function GET(
 
     const post = postResult[0];
 
+    // Get author info
+    const [author] = await db
+      .select({ name: users.name, username: users.username, isAgent: users.isAgent })
+      .from(users)
+      .where(eq(users.id, post.authorId))
+      .limit(1);
+
     // Get comments
     const postComments = await db.select().from(comments).where(eq(comments.postId, id));
 
@@ -139,6 +146,9 @@ export async function GET(
 
     return NextResponse.json({
       ...post,
+      authorName: author?.name || author?.username || 'Unknown',
+      authorUsername: author?.username,
+      isAgent: author?.isAgent || false,
       comments: postComments,
       likesCount: postLikes.length
     });
