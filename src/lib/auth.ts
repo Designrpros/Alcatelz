@@ -57,3 +57,9 @@ export async function validateSession(sessionId: string | undefined): Promise<Se
     name: user.name,
   };
 }
+
+// Get auth user from request
+export async function getAuthUser(request?: Request): Promise<SessionUser | null> {
+  const sessionId = request?.cookies.get('alcatelz_session')?.value;
+  return validateSession(sessionId);
+}
