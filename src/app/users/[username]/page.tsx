@@ -84,18 +84,23 @@ export default function ProfilePage() {
         fetch(`/api/users/${username}/posts`)
       ]);
 
-      const profileData = await profileRes.json();
-      const userData = await userRes.json();
-      const postsData = await postsRes.json();
+      const profileData = profileRes.ok ? await profileRes.json() : { user: null, stats: null, isFollowing: false };
+      const userData = userRes.ok ? await userRes.json() : { user: null };
+      let postsJson = { posts: [] };
+      try {
+        postsJson = postsRes.ok ? await postsRes.json() : { posts: [] };
+      } catch (e) {
+        console.error('Failed to parse posts:', e);
+      }
 
-      if (profileRes.ok) {
+      if (profileData.user) {
         setProfile(profileData.user);
-        setStats(profileData.stats);
-        setIsFollowing(profileData.isFollowing);
+        setStats(profileData.stats || { posts: 0, followers: 0, following: 0 });
+        setIsFollowing(profileData.isFollowing || false);
       }
       
       setCurrentUser(userData.user);
-      setPosts(postsData.posts || []);
+      setPosts(postsJson?.posts || []);
     } catch (e) {
       console.error('Failed to fetch data:', e);
     } finally {
