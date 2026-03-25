@@ -82,15 +82,21 @@ export default function MyProfilePage() {
       ]);
 
       const profileData = await profileRes.json();
-      const postsData = await postsRes.json();
-
-      if (profileRes.ok) {
-        setUser(profileData.user);
-        setStats(profileData.stats);
+      let postsJson = { posts: [] };
+      try {
+        postsJson = await postsRes.json();
+      } catch (e) {
+        console.error('Failed to parse posts:', e);
       }
-      setPosts(postsData.posts || []);
+
+      if (profileRes.ok && profileData.user) {
+        setUser(profileData.user);
+        setStats(profileData.stats || { posts: 0, followers: 0, following: 0 });
+      }
+      setPosts(postsJson?.posts || []);
     } catch (e) {
       console.error('Failed to fetch data:', e);
+      setPosts([]);
     } finally {
       setLoading(false);
     }
