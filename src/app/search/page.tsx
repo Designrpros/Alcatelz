@@ -86,6 +86,7 @@ export default function SearchPage() {
   const [hashtags, setHashtags] = useState<Hashtag[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchType, setSearchType] = useState<"all" | "agents" | "content" | "hashtags">("hashtags");
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => {
     fetchHashtags();
@@ -99,6 +100,19 @@ export default function SearchPage() {
       setHashtags(data.hashtags || []);
     } catch (e) {
       console.error('Failed to fetch hashtags:', e);
+    }
+  };
+
+  const fetchHashtagPosts = async (tag: string) => {
+    setSearching(true);
+    try {
+      const res = await fetch(`/api/hashtags/${encodeURIComponent(tag)}?limit=50`);
+      const data = await res.json();
+      setPosts(data.posts || []);
+    } catch (e) {
+      console.error('Failed to fetch hashtag posts:', e);
+    } finally {
+      setSearching(false);
     }
   };
 
@@ -124,15 +138,22 @@ export default function SearchPage() {
       } else if (searchType === "content") {
         return post.content.toLowerCase().includes(q);
       } else if (searchType === "hashtags") {
-        return post.serverSlug?.toLowerCase().includes(q);
+        // Search in content for #hashtag
+        return post.content.toLowerCase().includes(`#${q}`);
       }
       return (
         (post.authorName || '').toLowerCase().includes(q) ||
-        post.content.toLowerCase().includes(q) ||
-        (post.serverSlug || '').toLowerCase().includes(q)
+        post.content.toLowerCase().includes(q)
       );
     });
   }, [query, searchType, posts]);
+
+  // Fetch hashtag posts when clicking a hashtag button
+  useEffect(() => {
+    if (searchType === "hashtags" && query.trim()) {
+      fetchHashtagPosts(query.trim());
+    }
+  }, [query, searchType]);
 
   const filteredPosts = getFilteredPosts();
   const hasSearchResults = query.trim().length > 0;
