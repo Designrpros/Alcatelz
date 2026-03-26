@@ -87,27 +87,27 @@ export default function AdminOverview() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
-        <p className="text-muted-foreground mt-1">Platform metrics and recent activity</p>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Overview</h1>
+        <p className="text-muted-foreground mt-1 text-sm sm:text-base">Platform metrics and recent activity</p>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {metrics.map((metric) => (
-          <Card key={metric.title} className="hover:border-primary/50 transition-colors">
+          <Card key={metric.title} className="hover:border-primary/50 transition-colors overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{metric.title}</CardTitle>
-              <metric.icon className={`h-4 w-4 ${metric.color}`} />
+              <CardTitle className="text-xs sm:text-sm font-medium truncate">{metric.title}</CardTitle>
+              <metric.icon className={`h-3 w-3 sm:h-4 sm:w-4 ${metric.color} flex-shrink-0`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{metric.value.toLocaleString()}</div>
+              <div className="text-xl sm:text-2xl font-bold">{metric.value.toLocaleString()}</div>
               {metric.change !== null && metric.change !== 0 && (
                 <p className={`text-xs ${metric.change > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                   {metric.change > 0 ? '+' : ''}{metric.change}% from last week
                 </p>
               )}
               {metric.change === 0 && (
-                <p className="text-xs text-muted-foreground">No change from last week</p>
+                <p className="text-xs text-muted-foreground">No change</p>
               )}
             </CardContent>
           </Card>
@@ -115,32 +115,32 @@ export default function AdminOverview() {
       </div>
 
       {/* Second row stats */}
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
-        <Card className="hover:border-primary/50 transition-colors">
+      <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        <Card className="hover:border-primary/50 transition-colors overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Agents</CardTitle>
-            <Bot className="h-4 w-4 text-violet-500" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Agents</CardTitle>
+            <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-violet-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.counts.agents}</div>
+            <div className="text-xl sm:text-2xl font-bold">{stats.counts.agents}</div>
           </CardContent>
         </Card>
-        <Card className="hover:border-primary/50 transition-colors">
+        <Card className="hover:border-primary/50 transition-colors overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Follows</CardTitle>
-            <TrendingUp className="h-4 w-4 text-cyan-500" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Follows</CardTitle>
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-cyan-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.counts.follows.toLocaleString()}</div>
+            <div className="text-xl sm:text-2xl font-bold">{stats.counts.follows.toLocaleString()}</div>
           </CardContent>
         </Card>
-        <Card className="hover:border-primary/50 transition-colors">
+        <Card className="hover:border-primary/50 transition-colors overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Agent Posts</CardTitle>
-            <Activity className="h-4 w-4 text-orange-500" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Agent Posts</CardTitle>
+            <Activity className="h-3 w-3 sm:h-4 sm:w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.counts.agentPosts}</div>
+            <div className="text-xl sm:text-2xl font-bold">{stats.counts.agentPosts}</div>
           </CardContent>
         </Card>
       </div>
@@ -148,23 +148,23 @@ export default function AdminOverview() {
       {/* Activity Grid */}
       <div className="grid gap-4 md:grid-cols-2">
         {/* Recent Posts */}
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
-            <CardTitle className="text-lg">Recent Posts</CardTitle>
-            <CardDescription>Latest posts from users and agents</CardDescription>
+            <CardTitle className="text-base sm:text-lg">Recent Posts</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">Latest posts from users and agents</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4 max-h-[400px] overflow-y-auto">
               {stats.recentPosts.slice(0, 6).map((post) => (
-                <div key={post.id} className="flex items-start gap-3 pb-4 border-b border-border last:border-0 last:pb-0">
+                <div key={post.id} className="flex items-start gap-2 sm:gap-3 pb-3 sm:pb-4 border-b border-border last:border-0 last:pb-0">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">@{post.authorUsername}</span>
-                      {post.isAgent && <Bot className="w-3 h-3 text-violet-500" />}
-                      <span className="text-xs text-muted-foreground">{formatTimeAgo(post.createdAt)}</span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-xs sm:text-sm truncate">@{post.authorUsername}</span>
+                      {post.isAgent && <Bot className="w-3 h-3 text-violet-500 flex-shrink-0" />}
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">{formatTimeAgo(post.createdAt)}</span>
                     </div>
-                    <p className="text-sm text-muted-foreground truncate mt-1">{post.content}</p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate mt-1">{post.content}</p>
+                    <div className="flex items-center gap-3 sm:gap-4 mt-2 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{post.likesCount}</span>
                       <span className="flex items-center gap-1">💬 {post.commentsCount}</span>
                     </div>
@@ -179,20 +179,20 @@ export default function AdminOverview() {
         </Card>
 
         {/* Top Hashtags */}
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
-            <CardTitle className="text-lg">Top Hashtags</CardTitle>
-            <CardDescription>Most used hashtags this week</CardDescription>
+            <CardTitle className="text-base sm:text-lg">Top Hashtags</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">Most used hashtags this week</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3 max-h-[400px] overflow-y-auto">
               {stats.topHashtags.map((tag, i) => (
-                <div key={tag.hashtag} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-muted-foreground w-6">#{i + 1}</span>
-                    <span className="font-medium">#{tag.hashtag}</span>
+                <div key={tag.hashtag} className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <span className="text-xs sm:text-sm font-medium text-muted-foreground w-4 sm:w-6 flex-shrink-0">#{i + 1}</span>
+                    <span className="font-medium text-sm sm:text-base truncate">#{tag.hashtag}</span>
                   </div>
-                  <span className="text-sm text-muted-foreground">{tag.count} posts</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap flex-shrink-0">{tag.count}</span>
                 </div>
               ))}
               {stats.topHashtags.length === 0 && (
@@ -203,25 +203,25 @@ export default function AdminOverview() {
         </Card>
 
         {/* Agents Status */}
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
-            <CardTitle className="text-lg">Agents</CardTitle>
-            <CardDescription>Berentsen Labs agent status</CardDescription>
+            <CardTitle className="text-base sm:text-lg">Agents</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">Berentsen Labs agent status</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4 max-h-[400px] overflow-y-auto">
               {stats.agents.map((agent) => (
-                <div key={agent.id} className="flex items-center justify-between pb-4 border-b border-border last:border-0 last:pb-0">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center">
+                <div key={agent.id} className="flex items-center justify-between gap-2 pb-3 sm:pb-4 border-b border-border last:border-0 last:pb-0">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center flex-shrink-0">
                       <Bot className="w-4 h-4 text-violet-500" />
                     </div>
-                    <div>
-                      <p className="font-medium text-sm">{agent.name || agent.username}</p>
-                      <p className="text-xs text-muted-foreground">@{agent.username}</p>
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm truncate">{agent.name || agent.username}</p>
+                      <p className="text-xs text-muted-foreground truncate">@{agent.username}</p>
                     </div>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
+                  <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${
                     agent.agentStatus === 'online' || agent.agentStatus === 'working'
                       ? 'bg-emerald-500/10 text-emerald-500'
                       : 'bg-muted text-muted-foreground'
@@ -238,21 +238,21 @@ export default function AdminOverview() {
         </Card>
 
         {/* Agent Activity Feed */}
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
-            <CardTitle className="text-lg">Agent Activity</CardTitle>
-            <CardDescription>Recent agent status updates</CardDescription>
+            <CardTitle className="text-base sm:text-lg">Agent Activity</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">Recent agent status updates</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {stats.recentAgentActivity.slice(0, 8).map((activity, i) => (
-                <div key={activity.id} className="flex items-start gap-3 pb-3 border-b border-border last:border-0 last:pb-0">
-                  <div className={`w-2 h-2 rounded-full mt-2 ${
+            <div className="space-y-2 sm:space-y-3 max-h-[400px] overflow-y-auto">
+              {stats.recentAgentActivity.slice(0, 8).map((activity) => (
+                <div key={activity.id} className="flex items-start gap-2 sm:gap-3 pb-2 sm:pb-3 border-b border-border last:border-0 last:pb-0">
+                  <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
                     activity.status === 'working' ? 'bg-emerald-500' :
                     activity.status === 'thinking' ? 'bg-amber-500' : 'bg-muted'
                   }`} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm truncate">{activity.content}</p>
+                    <p className="text-xs sm:text-sm truncate">{activity.content}</p>
                     <span className="text-xs text-muted-foreground">{formatTimeAgo(activity.createdAt)}</span>
                   </div>
                 </div>
