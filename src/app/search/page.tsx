@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Sidebar } from "@/components/ui/sidebar";
 import { Inspector } from "@/components/ui/inspector";
 import { BottomDock } from "@/components/ui/bottom-dock";
@@ -87,21 +87,65 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(true);
   const [searchType, setSearchType] = useState<"all" | "agents" | "content" | "hashtags">("hashtags");
   const [searching, setSearching] = useState(false);
+  const [hashtagPage, setHashtagPage] = useState(1);
+  const [hasMoreHashtags, setHasMoreHashtags] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const hashtagListRef = useRef<HTMLDivElement>(null);
 
+  // Fetch hashtag posts when clicking a hashtag button
   useEffect(() => {
-    fetchHashtags();
-    fetchPosts();
-  }, []);
+    if (searchType === "hashtags" && query.trim()) {
+      fetchHashtagPosts(query.trim());
+    }
+  }, [query, searchType]);
 
-  const fetchHashtags = async () => {
+  // Reset and reload when tab changes
+  useEffect(() => {
+    if (searchType === "hashtags" && !hasSearchResults) {
+      setHashtagPage(1);
+      setHasMoreHashtags(true);
+      fetchHashtags(1, false);
+    }
+  }, [searchType]);
+
+  const fetchHashtags = async (pageNum: number = 1, append: boolean = false) => {
     try {
-      const res = await fetch('/api/hashtags?limit=50');
+      const res = await fetch(`/api/hashtags?page=${pageNum}&limit=50`);
       const data = await res.json();
-      setHashtags(data.hashtags || []);
+      const newHashtags = data.hashtags || [];
+      if (append) {
+        setHashtags(prev => [...prev, ...newHashtags]);
+      } else {
+        setHashtags(newHashtags);
+      }
+      setHasMoreHashtags(data.hasMore !== false);
+      setHashtagPage(pageNum);
     } catch (e) {
       console.error('Failed to fetch hashtags:', e);
     }
   };
+
+  // Infinite scroll for hashtags
+  useEffect(() => {
+    if (searchType !== "hashtags" || hasSearchResults || !hasMoreHashtags || loadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setLoadingMore(true);
+          fetchHashtags(hashtagPage + 1, true);
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    const sentinel = hashtagListRef.current?.querySelector('#hashtag-sentinel');
+    if (sentinel) {
+      observer.observe(sentinel);
+    }
+
+    return () => observer.disconnect();
+  }, [searchType, hasSearchResults, hasMoreHashtags, loadingMore, hashtagPage]);
 
   const fetchHashtagPosts = async (tag: string) => {
     setSearching(true);
@@ -273,28 +317,32 @@ export default function SearchPage() {
                   </div>
                 </div>
 
-                {/* All Hashtags */}
-                {hashtags.length > 8 && (
-                  <div>
-                    <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-                      <Hash className="w-4 h-4" />
-                      All Hashtags
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {hashtags.map((tag) => (
-                        <button
-                          key={tag.hashtag}
-                          onClick={() => setQuery(tag.hashtag)}
-                          className="px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted text-sm transition-colors flex items-center gap-1.5"
-                        >
-                          <Hash className="w-3 h-3" />
-                          <span>{tag.hashtag}</span>
-                          <span className="text-xs text-muted-foreground">({tag.count})</span>
-                        </button>
-                      ))}
-                    </div>
+                {/* All Hashtags - infinite scroll */}
+                <div ref={hashtagListRef}>
+                  <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                    <Hash className="w-4 h-4" />
+                    All Hashtags
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {hashtags.map((tag) => (
+                      <button
+                        key={tag.hashtag}
+                        onClick={() => setQuery(tag.hashtag)}
+                        className="px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted text-sm transition-colors flex items-center gap-1.5"
+                      >
+                        <Hash className="w-3 h-3" />
+                        <span>{tag.hashtag}</span>
+                        <span className="text-xs text-muted-foreground">({tag.count})</span>
+                      </button>
+                    ))}
                   </div>
-                )}
+                  {/* Sentinel for infinite scroll */}
+                  <div id="hashtag-sentinel" className="h-4" />
+                  {loadingMore && <p className="text-center py-2 text-sm text-muted-foreground">Loading more...</p>}
+                  {!hasMoreHashtags && hashtags.length > 0 && (
+                    <p className="text-center py-2 text-sm text-muted-foreground">End of hashtags</p>
+                  )}
+                </div>
               </div>
             ) : hasSearchResults ? (
               /* Search Results */
