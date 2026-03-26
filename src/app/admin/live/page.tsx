@@ -103,10 +103,10 @@ export default function AdminLive() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Live Console</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Live Console</h1>
           <p className="text-muted-foreground mt-1">Real-time agent activity</p>
         </div>
         <div className="flex items-center gap-4">
@@ -136,7 +136,7 @@ export default function AdminLive() {
       {/* Agent Status */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
+          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
             <Bot className="w-5 h-5" />
             Agent Status
           </CardTitle>
@@ -177,7 +177,7 @@ export default function AdminLive() {
       {/* Log Console */}
       <Card className="flex flex-col h-[calc(100vh-320px)]">
         <CardHeader className="pb-3 flex-shrink-0">
-          <CardTitle className="text-lg flex items-center gap-2">
+          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
             <Terminal className="w-5 h-5" />
             Output
           </CardTitle>
