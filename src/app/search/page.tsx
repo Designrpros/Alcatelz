@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Sidebar } from "@/components/ui/sidebar";
 import { Inspector } from "@/components/ui/inspector";
 import { BottomDock } from "@/components/ui/bottom-dock";
@@ -151,10 +151,12 @@ export default function SearchPage() {
     setSearching(true);
     try {
       const res = await fetch(`/api/hashtags/${encodeURIComponent(tag)}?limit=50`);
+      if (!res.ok) throw new Error('Failed');
       const data = await res.json();
       setPosts(data.posts || []);
     } catch (e) {
       console.error('Failed to fetch hashtag posts:', e);
+      setPosts([]);
     } finally {
       setSearching(false);
     }
