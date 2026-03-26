@@ -5,7 +5,9 @@ import { Sidebar } from "@/components/ui/sidebar";
 import { Inspector } from "@/components/ui/inspector";
 import { BottomDock } from "@/components/ui/bottom-dock";
 import { useUIStore } from "@/lib/ui-store";
-import { Bot, Heart, MessageCircle, Search as SearchIcon, Hash, TrendingUp, Clock } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Bot, Heart, MessageCircle, Search as SearchIcon, Hash, TrendingUp, Clock, Loader2 } from "lucide-react";
 
 interface Post {
   id: string;
@@ -37,39 +39,43 @@ function formatTimeAgo(dateString: string): string {
 
 function PostCard({ post }: { post: Post }) {
   return (
-    <div className="border border-border rounded-md p-4 bg-card hover:bg-card/80 transition-colors">
-      <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-          <Bot className="w-4 h-4" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-sm">{post.authorName || 'unknown'}</span>
-            <span className="text-xs text-muted-foreground">
-              · {formatTimeAgo(post.createdAt)}
-            </span>
+    <Card className="overflow-hidden">
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+            <Bot className="w-4 h-4 text-muted-foreground" />
           </div>
-          <div className="flex items-center gap-1 text-xs text-primary mb-1">
-            <Hash className="w-3 h-3" />
-            {post.serverSlug || 'alcatelz'}
-          </div>
-          <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
-          {post.imageUrl && (
-            <div className="mt-3 rounded-md overflow-hidden border border-border">
-              <img src={post.imageUrl} alt="Post image" className="max-h-64 w-full object-cover" />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-medium text-sm">{post.authorName || 'unknown'}</span>
+              <span className="text-xs text-muted-foreground">
+                · {formatTimeAgo(post.createdAt)}
+              </span>
             </div>
-          )}
-          <div className="flex items-center gap-4 mt-3 pt-2 border-t border-border">
-            <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-red-500 cursor-pointer">
-              <Heart className="w-4 h-4" /> {post.likesCount || 0}
-            </button>
-            <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-blue-500 cursor-pointer">
-              <MessageCircle className="w-4 h-4" /> {post.commentsCount || 0}
-            </button>
+            {post.serverSlug && (
+              <div className="flex items-center gap-1 text-xs text-primary mt-1">
+                <Hash className="w-3 h-3" />
+                {post.serverSlug}
+              </div>
+            )}
+            <p className="text-sm leading-relaxed whitespace-pre-wrap mt-1">{post.content}</p>
+            {post.imageUrl && (
+              <div className="mt-3 rounded-md overflow-hidden border border-border">
+                <img src={post.imageUrl} alt="Post image" className="max-h-64 w-full object-cover" />
+              </div>
+            )}
+            <div className="flex items-center gap-4 mt-3 pt-2 border-t border-border">
+              <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-red-500 cursor-pointer">
+                <Heart className="w-4 h-4" /> {post.likesCount || 0}
+              </button>
+              <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-blue-500 cursor-pointer">
+                <MessageCircle className="w-4 h-4" /> {post.commentsCount || 0}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -88,7 +94,7 @@ export default function SearchPage() {
 
   const fetchHashtags = async () => {
     try {
-      const res = await fetch('/api/hashtags');
+      const res = await fetch('/api/hashtags?limit=50');
       const data = await res.json();
       setHashtags(data.hashtags || []);
     } catch (e) {
@@ -98,7 +104,7 @@ export default function SearchPage() {
 
   const fetchPosts = async () => {
     try {
-      const res = await fetch('/api/feed');
+      const res = await fetch('/api/feed?limit=50');
       const data = await res.json();
       setPosts(data.posts || []);
     } catch (e) {
@@ -134,32 +140,32 @@ export default function SearchPage() {
   return (
     <div className="h-screen bg-background flex overflow-hidden">
       {isSidebarOpen && (
-        <div className="w-64 flex-shrink-0 border-r border-border overflow-y-auto">
+        <div className="w-64 flex-shrink-0 border-r border-border overflow-y-auto hidden md:block">
           <Sidebar />
         </div>
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
         <main className="flex-1 overflow-y-auto pb-20">
-          <div className="flex-1 max-w-2xl mx-auto px-4 py-6">
+          <div className="max-w-2xl mx-auto px-4 py-6">
             {/* Header */}
             <div className="flex items-center gap-3 mb-6">
-              <SearchIcon className="w-6 h-6" />
+              <SearchIcon className="w-6 h-6 text-muted-foreground" />
               <div>
-                <h1 className="text-xl font-serif font-bold">Search</h1>
-                <p className="text-xs text-muted-foreground">Explore hashtags and content</p>
+                <h1 className="text-2xl font-bold tracking-tight">Search</h1>
+                <p className="text-sm text-muted-foreground">Explore hashtags and content</p>
               </div>
             </div>
 
             {/* Search Input */}
             <div className="relative mb-4">
               <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
+              <Input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search hashtags, posts, agents..."
-                className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-card text-sm outline-none focus:ring-2 focus:ring-primary/50"
+                className="w-full pl-10 pr-10"
               />
               {query && (
                 <button
@@ -172,7 +178,7 @@ export default function SearchPage() {
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex gap-1 mb-6 p-1 bg-muted/50 rounded-lg w-fit">
+            <div className="flex gap-1 mb-6 p-1 bg-muted/50 rounded-lg w-fit overflow-x-auto">
               {[
                 { key: "hashtags", label: "Hashtags" },
                 { key: "all", label: "All" },
@@ -182,10 +188,10 @@ export default function SearchPage() {
                 <button
                   key={tab.key}
                   onClick={() => setSearchType(tab.key as typeof searchType)}
-                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                  className={`px-3 py-1.5 text-sm rounded-md transition-colors whitespace-nowrap ${
                     searchType === tab.key 
-                      ? "bg-card shadow-sm font-medium" 
-                      : "hover:bg-card/50"
+                      ? "bg-background shadow-sm font-medium" 
+                      : "hover:bg-background/50"
                   }`}
                 >
                   {tab.label}
@@ -195,8 +201,8 @@ export default function SearchPage() {
 
             {/* Content based on active tab */}
             {loading ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <div className="animate-pulse">Searching...</div>
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
               </div>
             ) : searchType === "hashtags" && !hasSearchResults ? (
               /* Hashtags Overview */
@@ -207,18 +213,18 @@ export default function SearchPage() {
                     <TrendingUp className="w-4 h-4 text-primary" />
                     Trending Hashtags
                   </h3>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {hashtags.slice(0, 8).map((tag) => (
                       <button
                         key={tag.slug}
                         onClick={() => setQuery(tag.slug)}
-                        className="p-3 rounded-lg border border-border bg-card hover:bg-card/80 transition-colors text-left"
+                        className="p-4 rounded-xl border border-border bg-card hover:bg-card/80 hover:border-primary/50 transition-all text-left"
                       >
-                        <div className="flex items-center gap-2 mb-1">
-                          <Hash className="w-4 h-4 text-primary" />
-                          <span className="font-medium text-sm">{tag.slug}</span>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Hash className="w-5 h-5 text-primary" />
+                          <span className="font-semibold">{tag.slug}</span>
                         </div>
-                        <p className="text-xs text-muted-foreground">{tag.count} posts</p>
+                        <p className="text-sm text-muted-foreground">{tag.count} posts</p>
                       </button>
                     ))}
                   </div>
@@ -236,9 +242,10 @@ export default function SearchPage() {
                         <button
                           key={tag.slug}
                           onClick={() => setQuery(tag.slug)}
-                          className="px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted text-sm transition-colors flex items-center gap-1"
+                          className="px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted text-sm transition-colors flex items-center gap-1.5"
                         >
-                          <Hash className="w-3 h-3" />{tag.slug}
+                          <Hash className="w-3 h-3" />
+                          <span>{tag.slug}</span>
                           <span className="text-xs text-muted-foreground">({tag.count})</span>
                         </button>
                       ))}
@@ -253,14 +260,15 @@ export default function SearchPage() {
                     Suggested
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {['ai', 'creative', 'coding', 'news', 'projects'].map((tag) => (
+                    {['ai', 'creative', 'coding', 'news', 'projects', 'tech', 'design'].map((tag) => (
                       !hashtags.find(t => t.slug === tag) && (
                         <button
                           key={tag}
                           onClick={() => setQuery(tag)}
-                          className="px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 text-sm transition-colors flex items-center gap-1"
+                          className="px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 text-sm transition-colors flex items-center gap-1.5"
                         >
-                          <Hash className="w-3 h-3" />{tag}
+                          <Hash className="w-3 h-3" />
+                          {tag}
                         </button>
                       )
                     ))}
@@ -270,8 +278,8 @@ export default function SearchPage() {
             ) : hasSearchResults ? (
               /* Search Results */
               filteredPosts.length > 0 ? (
-                <div className="space-y-3">
-                  <div className="text-sm text-muted-foreground mb-2">
+                <div className="space-y-4">
+                  <div className="text-sm text-muted-foreground">
                     {filteredPosts.length} result{filteredPosts.length !== 1 ? 's' : ''} for "{query}"
                   </div>
                   {filteredPosts.map((post) => (
@@ -299,7 +307,7 @@ export default function SearchPage() {
       </div>
 
       {isInspectorOpen && (
-        <div className="w-80 flex-shrink-0 border-l border-border overflow-y-auto">
+        <div className="w-80 flex-shrink-0 border-l border-border overflow-y-auto hidden lg:block">
           <Inspector />
         </div>
       )}
