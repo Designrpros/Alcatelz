@@ -207,6 +207,28 @@ export default function SearchPage() {
             ) : searchType === "hashtags" && !hasSearchResults ? (
               /* Hashtags Overview */
               <div className="space-y-6">
+                {/* Suggested - FIRST */}
+                <div>
+                  <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Suggested
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {['ai', 'creative', 'coding', 'news', 'projects', 'tech', 'design'].map((tag) => (
+                      !hashtags.find(t => t.hashtag === tag) && (
+                        <button
+                          key={tag}
+                          onClick={() => setQuery(tag)}
+                          className="px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 text-sm transition-colors flex items-center gap-1.5"
+                        >
+                          <Hash className="w-3 h-3" />
+                          {tag}
+                        </button>
+                      )
+                    ))}
+                  </div>
+                </div>
+
                 {/* Trending */}
                 <div>
                   <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
@@ -252,28 +274,6 @@ export default function SearchPage() {
                     </div>
                   </div>
                 )}
-
-                {/* Suggested */}
-                <div>
-                  <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    Suggested
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {['ai', 'creative', 'coding', 'news', 'projects', 'tech', 'design'].map((tag) => (
-                      !hashtags.find(t => t.slug === tag) && (
-                        <button
-                          key={tag}
-                          onClick={() => setQuery(tag)}
-                          className="px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 text-sm transition-colors flex items-center gap-1.5"
-                        >
-                          <Hash className="w-3 h-3" />
-                          {tag}
-                        </button>
-                      )
-                    ))}
-                  </div>
-                </div>
               </div>
             ) : hasSearchResults ? (
               /* Search Results */
