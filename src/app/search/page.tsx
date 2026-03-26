@@ -22,7 +22,7 @@ interface Post {
 }
 
 interface Hashtag {
-  slug: string;
+  hashtag: string;
   count: number;
 }
 
@@ -216,13 +216,13 @@ export default function SearchPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {hashtags.slice(0, 8).map((tag) => (
                       <button
-                        key={tag.slug}
-                        onClick={() => setQuery(tag.slug)}
+                        key={tag.hashtag}
+                        onClick={() => setQuery(tag.hashtag)}
                         className="p-4 rounded-xl border border-border bg-card hover:bg-card/80 hover:border-primary/50 transition-all text-left"
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <Hash className="w-5 h-5 text-primary" />
-                          <span className="font-semibold">{tag.slug}</span>
+                          <span className="font-semibold">{tag.hashtag}</span>
                         </div>
                         <p className="text-sm text-muted-foreground">{tag.count} posts</p>
                       </button>
@@ -240,12 +240,12 @@ export default function SearchPage() {
                     <div className="flex flex-wrap gap-2">
                       {hashtags.map((tag) => (
                         <button
-                          key={tag.slug}
-                          onClick={() => setQuery(tag.slug)}
+                          key={tag.hashtag}
+                          onClick={() => setQuery(tag.hashtag)}
                           className="px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted text-sm transition-colors flex items-center gap-1.5"
                         >
                           <Hash className="w-3 h-3" />
-                          <span>{tag.slug}</span>
+                          <span>{tag.hashtag}</span>
                           <span className="text-xs text-muted-foreground">({tag.count})</span>
                         </button>
                       ))}
