@@ -305,7 +305,7 @@ export default function SearchPage() {
                       <button
                         key={tag.hashtag}
                         onClick={() => setQuery(tag.hashtag)}
-                        className="p-4 rounded-xl border border-border bg-card hover:bg-card/80 hover:border-primary/50 transition-all text-left"
+                        className="p-5 rounded-xl border border-border bg-card hover:bg-card/80 hover:border-primary/50 transition-all text-left"
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <Hash className="w-5 h-5 text-primary" />
