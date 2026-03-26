@@ -10,7 +10,7 @@ import { CreateServerModal } from "@/components/create-server-modal";
 import { PostCard } from "@/components/post-card";
 import { PostComposer } from "@/components/post-composer";
 import { useUIStore } from "@/lib/ui-store";
-import { Bot, Heart, MessageCircle, Image as ImageIcon, Send, Globe, Hash, Upload, LogIn, Plus, Search as SearchIcon } from "lucide-react";
+import { Bot, Heart, MessageCircle, Image as ImageIcon, Send, Globe, Hash, Upload, LogIn, Plus, Search as SearchIcon, Loader2 } from "lucide-react";
 
 interface User {
   id: string;
@@ -52,9 +52,15 @@ function formatTimeAgo(dateString: string): string {
 export default function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [servers, setServers] = useState<Server[]>([]);
+  const [hashtagsPage, setHashtagsPage] = useState(1);
+  const [hasMoreHashtags, setHasMoreHashtags] = useState(true);
+  const [loadingHashtags, setLoadingHashtags] = useState(false);
   const [activeServer, setActiveServer] = useState('all');
   const [feedFilter, setFeedFilter] = useState<'all' | 'hot' | 'trending'>('all');
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [showCreateServer, setShowCreateServer] = useState(false);
   const [showHashtagSearch, setShowHashtagSearch] = useState(false);
@@ -62,58 +68,77 @@ export default function HomePage() {
   const [searchResults, setSearchResults] = useState<{ slug: string; count: number }[]>([]);
   const { isSidebarOpen, isInspectorOpen } = useUIStore();
   const router = useRouter();
+  const hashtagRowRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    fetchUser();
-    fetchData();
-  }, [activeServer]);
-
-  // Search hashtags when typing
-  useEffect(() => {
-    if (hashtagSearch.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-    const timer = setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/hashtags?q=${encodeURIComponent(hashtagSearch)}`);
-        const data = await res.json();
-        setSearchResults((data.hashtags || []).map((t: { hashtag: string; count: string | number }) => ({ slug: t.hashtag, count: Number(t.count) })));
-      } catch (e) {
-        console.error('Failed to search hashtags:', e);
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [hashtagSearch]);
-
-  const fetchUser = async () => {
+  // Fetch hashtags with pagination
+  const fetchHashtags = async (pageNum: number = 1, append: boolean = false) => {
+    if (loadingHashtags || (!append && !hasMoreHashtags)) return;
+    setLoadingHashtags(true);
     try {
-      const res = await fetch('/api/auth/me');
+      const res = await fetch(`/api/hashtags?page=${pageNum}&limit=20`);
       const data = await res.json();
-      setUser(data.user);
+      const newHashtags = (data.hashtags || []).map((h: { hashtag: string; count: number }) => ({
+        id: h.hashtag,
+        slug: h.hashtag,
+        name: h.hashtag
+      }));
+      if (append) {
+        setServers(prev => [...prev, ...newHashtags]);
+      } else {
+        setServers(newHashtags);
+      }
+      setHasMoreHashtags(data.hasMore !== false);
+      setHashtagsPage(pageNum);
     } catch (e) {
-      console.error('Failed to fetch user:', e);
+      console.error('Failed to fetch hashtags:', e);
+    } finally {
+      setLoadingHashtags(false);
     }
   };
 
-  const fetchData = async () => {
+  // Horizontal scroll observer for hashtags
+  useEffect(() => {
+    const container = hashtagRowRef.current;
+    if (!container || !hasMoreHashtags || loadingHashtags) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          fetchHashtags(hashtagsPage + 1, true);
+        }
+      },
+      { threshold: 0.5, root: null }
+    );
+
+    const sentinel = container.querySelector('#hashtag-scroll-sentinel');
+    if (sentinel) {
+      observer.observe(sentinel);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMoreHashtags, loadingHashtags, hashtagsPage, servers]);
+
+  const fetchData = async (pageNum: number = 1, append: boolean = false) => {
     try {
       let allPosts;
       
       // Simplified - all filters are hashtags
       
       if (activeServer === 'all') {
-        const res = await fetch('/api/feed');
+        const res = await fetch(`/api/feed?page=${pageNum}&limit=20`);
         const jsonData = await res.json();
         allPosts = jsonData.posts || [];
+        setHasMore(jsonData.hasMore !== false);
       } else {
-        // It's a hashtag - use hashtag API
-        const res = await fetch(`/api/hashtags/${encodeURIComponent(activeServer)}`);
+        // It's a hashtag - use hashtag API with pagination
+        const res = await fetch(`/api/hashtags/${encodeURIComponent(activeServer)}?page=${pageNum}&limit=20`);
         if (res.ok) {
           const data = await res.json();
           allPosts = data.posts || [];
+          setHasMore(data.hasMore !== false);
         } else {
           allPosts = [];
+          setHasMore(false);
         }
       }
 
@@ -137,29 +162,66 @@ export default function HomePage() {
       }
       // 'all' - keep chronological order
 
-      setPosts(allPosts);
-      
-      // Fetch popular hashtags and use them as servers
-      try {
-        const hashtagsRes = await fetch('/api/hashtags');
-        const hashtagsData = await hashtagsRes.json();
-        if (hashtagsData.hashtags && hashtagsData.hashtags.length > 0) {
-          const hashtagServers = hashtagsData.hashtags.map((h: { hashtag: string; count: number }) => ({
-            id: h.hashtag,
-            slug: h.hashtag,
-            name: h.hashtag
-          }));
-          setServers(hashtagServers);
-        }
-      } catch (e) {
-        console.error('Failed to fetch hashtags:', e);
+      if (append) {
+        setPosts(prev => [...prev, ...allPosts]);
+      } else {
+        setPosts(allPosts);
       }
     } catch (e) {
       console.error('Failed to fetch posts:', e);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
+
+  // Initial load
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+        setUser(data.user);
+      } catch (e) {
+        console.error('Failed to fetch user:', e);
+      }
+      fetchData(1, false);
+      fetchHashtags(1, false);
+    };
+    init();
+  }, []);
+
+  // Reset and reload when filter changes
+  useEffect(() => {
+    setPage(1);
+    setPosts([]);
+    setLoading(true);
+    fetchData(1, false);
+  }, [activeServer, feedFilter]);
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    if (loading || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loadingMore) {
+          setLoadingMore(true);
+          const nextPage = page + 1;
+          setPage(nextPage);
+          fetchData(nextPage, true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const sentinel = document.getElementById('feed-scroll-sentinel');
+    if (sentinel) {
+      observer.observe(sentinel);
+    }
+
+    return () => observer.disconnect();
+  }, [loading, hasMore, page, loadingMore]);
 
   const handlePost = async (content: string, imageUrl?: string) => {
     try {
@@ -169,7 +231,8 @@ export default function HomePage() {
         body: JSON.stringify({ content, imageUrl, serverSlug: activeServer }),
       });
       if (res.ok) {
-        fetchData();
+        setPage(1);
+        fetchData(1, false);
       } else if (res.status === 401) {
         router.push('/auth');
       }
@@ -248,7 +311,7 @@ export default function HomePage() {
             </div>
 
             {/* Server tabs */}
-            <div className="mb-4">
+            <div className="mb-4" ref={hashtagRowRef}>
               <div className="flex gap-2 overflow-x-auto pb-2 items-center">
                 <button
                   onClick={() => setShowHashtagSearch(!showHashtagSearch)}
@@ -279,6 +342,12 @@ export default function HomePage() {
                     <Hash className="w-3 h-3" />{server.slug}
                   </button>
                 ))}
+                {/* Sentinel for horizontal infinite scroll */}
+                <div id="hashtag-scroll-sentinel" className="flex-shrink-0 w-4 h-4" />
+                {loadingHashtags && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground flex-shrink-0" />}
+                {!hasMoreHashtags && servers.length > 0 && (
+                  <span className="text-xs text-muted-foreground flex-shrink-0 px-2">End</span>
+                )}
               </div>
 
               {/* Hashtag search dropdown */}
@@ -348,7 +417,17 @@ export default function HomePage() {
                   <p className="text-sm mt-1">Be the first to share!</p>
                 </div>
               ) : (
-                posts.map((post) => <PostCard key={post.id} post={post} onLike={handleLike} user={user} onDelete={fetchData} />)
+                <>
+                  {posts.map((post) => <PostCard key={post.id} post={post} onLike={handleLike} user={user} onDelete={() => { setPage(1); fetchData(1, false); }} />)}
+                  
+                  {/* Sentinel for Intersection Observer - infinite scroll */}
+                  <div id="feed-scroll-sentinel" className="h-20 flex justify-center items-center">
+                    {loadingMore && <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />}
+                    {!hasMore && posts.length > 0 && (
+                      <p className="text-sm text-muted-foreground">No more posts</p>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           </div>
