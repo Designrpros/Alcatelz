@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Home, Search, Settings, Users, User, Bell, LogOut, Bot, BookOpen, Hash } from "lucide-react";
+import { Home, Search, Settings, Users, User, Bell, LogOut, Bot, BookOpen, Hash, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface UserType { id: string; username: string; name: string | null; }
@@ -58,6 +58,7 @@ export function Sidebar({ className }: SidebarProps) {
     { href: "/notifications", icon: Bell, label: "Varslinger", badge: unreadCount as number },
     { href: "/profile", icon: User, label: "Profil" },
     { href: "/settings", icon: Settings, label: "Innstillinger" },
+    ...(user?.role === 'admin' ? [{ href: "/admin", icon: Shield, label: "Admin", admin: true }] : []),
   ];
 
   return (
@@ -88,11 +89,16 @@ export function Sidebar({ className }: SidebarProps) {
       )}
 
       <nav className="flex-1 space-y-1 overflow-y-auto">
-        {navItems.map(({ href, icon: Icon, label, badge }) => (
-          <Link key={href} href={href} className={cn("flex items-center gap-3 px-3 py-2 rounded-lg transition-colors relative", isActive(href) ? "bg-muted text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted")}>
+        {navItems.map(({ href, icon: Icon, label, badge, admin }) => (
+          <Link key={href} href={href} className={cn("flex items-center gap-3 px-3 py-2 rounded-lg transition-colors relative", isActive(href) ? "bg-muted text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted", admin && "text-red-500")}>
             <Icon className="w-5 h-5" />
             <span>{label}</span>
-            {(badge ?? 0) > 0 && (
+            {admin && (
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                ADMIN
+              </span>
+            )}
+            {(badge ?? 0) > 0 && !admin && (
               <span className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
                 {(badge ?? 0) > 99 ? "99+" : badge}
               </span>

@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { posts, users, likes, sessions, agentPosts, servers } from '@/lib/db/schema';
-import { desc, eq, and } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 
 const SESSION_COOKIE = 'alcatelz_session';
 
-// GET /api/feed - Get all posts with optional server filter
+// GET /api/feed - Get posts with pagination
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const serverSlug = undefined;
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
+    const offset = (page - 1) * limit;
 
     // Get current user from session
     const sessionId = request.cookies.get(SESSION_COOKIE)?.value;
@@ -24,7 +26,7 @@ export async function GET(request: Request) {
       currentUserId = session?.userId || null;
     }
 
-    // Get posts
+    // Get posts with pagination
     const allPosts = await db
       .select({
         id: posts.id,
@@ -37,7 +39,10 @@ export async function GET(request: Request) {
       })
       .from(posts)
       .orderBy(desc(posts.createdAt))
-      .limit(50);
+      .limit(limit)
+      .offset(offset);
+
+    const hasMore = allPosts.length === limit;
 
     // Get user's likes for all posts
     let userLikes: string[] = [];
@@ -79,6 +84,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       posts: postsWithAuthors,
+      hasMore: allPosts.length === limit, // More posts if we got full page
+      page,
       agentStatus: latestStatus ? {
         status: latestStatus.status,
         content: latestStatus.content,

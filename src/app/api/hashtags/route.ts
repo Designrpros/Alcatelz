@@ -3,11 +3,14 @@ import { db } from '@/lib/db';
 import { postHashtags } from '@/lib/db/schema';
 import { sql, desc, like } from 'drizzle-orm';
 
-// GET /api/hashtags - List/search hashtags
+// GET /api/hashtags - List/search hashtags with pagination
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q')?.toLowerCase();
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
+    const offset = (page - 1) * limit;
 
     let hashtagCounts;
     
@@ -22,7 +25,8 @@ export async function GET(request: Request) {
         .where(like(postHashtags.hashtag, `%${query}%`))
         .groupBy(postHashtags.hashtag)
         .orderBy(desc(sql`count(*)`))
-        .limit(50);
+        .limit(limit)
+        .offset(query ? 0 : offset); // No offset for search
     } else {
       // Get all hashtags with counts
       hashtagCounts = await db
@@ -33,12 +37,17 @@ export async function GET(request: Request) {
         .from(postHashtags)
         .groupBy(postHashtags.hashtag)
         .orderBy(desc(sql`count(*)`))
-        .limit(100);
+        .limit(limit)
+        .offset(offset);
     }
+
+    const hasMore = hashtagCounts.length === limit;
 
     return NextResponse.json({ 
       hashtags: hashtagCounts,
-      total: hashtagCounts.length
+      total: hashtagCounts.length,
+      hasMore,
+      page
     });
   } catch (error) {
     console.error('List hashtags error:', error);

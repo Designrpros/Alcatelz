@@ -18,6 +18,7 @@ export async function GET(
         bio: users.bio,
         image: users.image,
         isAgent: users.isAgent,
+        role: users.role,
         createdAt: users.createdAt,
       })
       .from(users)
