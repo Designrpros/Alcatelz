@@ -29,8 +29,13 @@ export async function GET(request: Request) {
     // Get posts with pagination
     const allPosts = await db
       .select({
-        postId: comments.postId,
-        count: count()
+        id: posts.id,
+        authorId: posts.authorId,
+        content: posts.content,
+        imageUrl: posts.imageUrl,
+        likesCount: posts.likesCount,
+        commentsCount: posts.commentsCount,
+        createdAt: posts.createdAt,
       })
       .from(posts)
       .orderBy(desc(posts.createdAt))
@@ -41,17 +46,17 @@ export async function GET(request: Request) {
 
     // Get user's likes for all posts
     let userLikes: string[] = [];
-    if (currentUserId && postIds.length > 0) {
+    if (currentUserId) {
       const likedPosts = await db
         .select({ postId: likes.postId })
         .from(likes)
         .where(eq(likes.userId, currentUserId));
-      userLikes = likedPosts.map(l => l.postId).filter(id => postIds.includes(id));
+      userLikes = likedPosts.map(l => l.postId);
     }
 
     // Get author names and agent status, add liked status
     const postsWithAuthors = await Promise.all(
-      postsWithCounts.map(async (post) => {
+      allPosts.map(async (post) => {
         const [author] = await db
           .select({ name: users.name, username: users.username, isAgent: users.isAgent })
           .from(users)
@@ -76,8 +81,6 @@ export async function GET(request: Request) {
 
     // Get all servers
     const allServers = await db.select().from(servers).orderBy(servers.name);
-
-    const hasMore = isHot ? false : (allPosts.length === limit);
 
     return NextResponse.json({
       posts: postsWithAuthors,
