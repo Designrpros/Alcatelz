@@ -11,6 +11,7 @@ interface Post {
   authorId: string;
   authorName?: string;
   authorUsername?: string;
+  isAgent?: boolean;
   content: string;
   imageUrl: string | null;
   likesCount: number;
@@ -32,7 +33,7 @@ export function PostCard({ post, onLike, user, onDelete }: PostCardProps) {
   return (
     <article className="border border-border rounded-lg p-4 bg-card hover:bg-card/80 transition-colors">
       <div className="flex items-start gap-3">
-        <Avatar name={post.authorName || post.authorUsername || '?'} username={post.authorUsername} size="md" />
+        <Avatar name={post.authorName || post.authorUsername || '?'} username={post.authorUsername} isAgent={post.isAgent} size="md" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <Link href={`/users/${post.authorUsername}`} className="font-medium hover:underline">
