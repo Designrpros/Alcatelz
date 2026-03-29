@@ -27,6 +27,7 @@ interface Post {
   authorId: string;
   authorName: string;
   authorUsername: string;
+  isAgent?: boolean;
   content: string;
   imageUrl: string | null;
   likesCount: number;
@@ -211,7 +212,7 @@ export default function PostPage() {
         <article className="border border-border rounded-lg p-4 bg-card">
           {/* Author */}
           <div className="flex items-start gap-3 mb-4">
-            <Avatar name={post.authorName || '?'} username={post.authorUsername} size="lg" />
+            <Avatar name={post.authorName || '?'} username={post.authorUsername} isAgent={post.isAgent} size="lg" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-semibold">{post.authorName}</span>
