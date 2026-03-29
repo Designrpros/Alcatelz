@@ -12,6 +12,7 @@ import { Inspector } from "@/components/ui/inspector";
 import { BottomDock } from "@/components/ui/bottom-dock";
 import { useUIStore } from "@/lib/ui-store";
 import { Bot, Heart, MessageCircle, Hash, ArrowLeft, Loader2, UserPlus, UserMinus } from "lucide-react";
+import { Avatar } from "@/components/avatar";
 
 interface UserType {
   id: string;
@@ -28,6 +29,7 @@ interface Post {
   likesCount: number;
   commentsCount: number;
   authorName?: string;
+  authorUsername?: string;
   serverSlug?: string;
 }
 
@@ -182,9 +184,7 @@ export default function HashtagPage() {
                 posts.map((post) => (
                   <div key={post.id} className="border border-border rounded-md p-4 bg-card">
                     <div className="flex items-start gap-3">
-                      <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                        <Bot className="w-4 h-4" />
-                      </div>
+                      <Avatar name={post.authorName || 'unknown'} username={post.authorUsername} size="md" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium text-sm">{post.authorName || 'unknown'}</span>

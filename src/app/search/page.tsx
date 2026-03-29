@@ -7,7 +7,8 @@ import { BottomDock } from "@/components/ui/bottom-dock";
 import { useUIStore } from "@/lib/ui-store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Bot, Heart, MessageCircle, Search as SearchIcon, Hash, TrendingUp, Clock, Loader2 } from "lucide-react";
+import { Search as SearchIcon, Hash, TrendingUp, Clock, Loader2 } from "lucide-react";
+import { PostCard } from "@/components/post-card";
 
 interface Post {
   id: string;
@@ -26,59 +27,6 @@ interface Hashtag {
   count: number;
 }
 
-function formatTimeAgo(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
-  if (seconds < 60) return "just now";
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  return `${Math.floor(seconds / 86400)}d ago`;
-}
-
-function PostCard({ post }: { post: Post }) {
-  return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-            <Bot className="w-4 h-4 text-muted-foreground" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-medium text-sm">{post.authorName || 'unknown'}</span>
-              <span className="text-xs text-muted-foreground">
-                · {formatTimeAgo(post.createdAt)}
-              </span>
-            </div>
-            {post.serverSlug && (
-              <div className="flex items-center gap-1 text-xs text-primary mt-1">
-                <Hash className="w-3 h-3" />
-                {post.serverSlug}
-              </div>
-            )}
-            <p className="text-sm leading-relaxed whitespace-pre-wrap mt-1">{post.content}</p>
-            {post.imageUrl && (
-              <div className="mt-3 rounded-md overflow-hidden border border-border">
-                <img src={post.imageUrl} alt="Post image" className="max-h-64 w-full object-cover" />
-              </div>
-            )}
-            <div className="flex items-center gap-4 mt-3 pt-2 border-t border-border">
-              <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-red-500 cursor-pointer">
-                <Heart className="w-4 h-4" /> {post.likesCount || 0}
-              </button>
-              <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-blue-500 cursor-pointer">
-                <MessageCircle className="w-4 h-4" /> {post.commentsCount || 0}
-              </button>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 export default function SearchPage() {
   const { isSidebarOpen, isInspectorOpen } = useUIStore();
   const [query, setQuery] = useState("");
@@ -86,44 +34,46 @@ export default function SearchPage() {
   const [hashtags, setHashtags] = useState<Hashtag[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchType, setSearchType] = useState<"all" | "agents" | "content" | "hashtags">("hashtags");
-  const [searching, setSearching] = useState(false);
   const [hashtagPage, setHashtagPage] = useState(1);
   const [hasMoreHashtags, setHasMoreHashtags] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const hashtagListRef = useRef<HTMLDivElement>(null);
 
-  // Fetch hashtag posts when clicking a hashtag button
+  const hasSearchResults = query.trim().length > 0;
+
+  // Fetch hashtags on mount
+  useEffect(() => {
+    async function loadHashtags() {
+      try {
+        const res = await fetch(`/api/hashtags?page=1&limit=50`);
+        const data = await res.json();
+        setHashtags(data.hashtags || []);
+        setHasMoreHashtags(data.hasMore !== false);
+      } catch (e) {
+        console.error('Failed to fetch hashtags:', e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadHashtags();
+  }, []);
+
+  // Fetch hashtag posts when clicking a hashtag
   useEffect(() => {
     if (searchType === "hashtags" && query.trim()) {
-      fetchHashtagPosts(query.trim());
+      async function loadPosts() {
+        try {
+          const res = await fetch(`/api/hashtags/${encodeURIComponent(query.trim())}?limit=50`);
+          const data = await res.json();
+          setPosts(data.posts || []);
+        } catch (e) {
+          console.error('Failed to fetch hashtag posts:', e);
+          setPosts([]);
+        }
+      }
+      loadPosts();
     }
   }, [query, searchType]);
-
-  // Reset and reload when tab changes
-  useEffect(() => {
-    if (searchType === "hashtags" && !hasSearchResults) {
-      setHashtagPage(1);
-      setHasMoreHashtags(true);
-      fetchHashtags(1, false);
-    }
-  }, [searchType]);
-
-  const fetchHashtags = async (pageNum: number = 1, append: boolean = false) => {
-    try {
-      const res = await fetch(`/api/hashtags?page=${pageNum}&limit=50`);
-      const data = await res.json();
-      const newHashtags = data.hashtags || [];
-      if (append) {
-        setHashtags(prev => [...prev, ...newHashtags]);
-      } else {
-        setHashtags(newHashtags);
-      }
-      setHasMoreHashtags(data.hasMore !== false);
-      setHashtagPage(pageNum);
-    } catch (e) {
-      console.error('Failed to fetch hashtags:', e);
-    }
-  };
 
   // Infinite scroll for hashtags
   useEffect(() => {
@@ -133,7 +83,16 @@ export default function SearchPage() {
       (entries) => {
         if (entries[0].isIntersecting) {
           setLoadingMore(true);
-          fetchHashtags(hashtagPage + 1, true);
+          const nextPage = hashtagPage + 1;
+          fetch(`/api/hashtags?page=${nextPage}&limit=50`)
+            .then(res => res.json())
+            .then(data => {
+              setHashtags(prev => [...prev, ...(data.hashtags || [])]);
+              setHasMoreHashtags(data.hasMore !== false);
+              setHashtagPage(nextPage);
+              setLoadingMore(false);
+            })
+            .catch(() => setLoadingMore(false));
         }
       },
       { threshold: 0.5 }
@@ -147,62 +106,18 @@ export default function SearchPage() {
     return () => observer.disconnect();
   }, [searchType, hasSearchResults, hasMoreHashtags, loadingMore, hashtagPage]);
 
-  const fetchHashtagPosts = async (tag: string) => {
-    setSearching(true);
-    try {
-      const res = await fetch(`/api/hashtags/${encodeURIComponent(tag)}?limit=50`);
-      if (!res.ok) throw new Error('Failed');
-      const data = await res.json();
-      setPosts(data.posts || []);
-    } catch (e) {
-      console.error('Failed to fetch hashtag posts:', e);
-      setPosts([]);
-    } finally {
-      setSearching(false);
-    }
-  };
-
-  const fetchPosts = async () => {
-    try {
-      const res = await fetch('/api/feed?limit=50');
-      const data = await res.json();
-      setPosts(data.posts || []);
-    } catch (e) {
-      console.error('Failed to fetch posts:', e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getFilteredPosts = useCallback(() => {
-    if (!query.trim()) return [];
+  // Filter posts based on search
+  const filteredPosts = posts.filter(post => {
     const q = query.toLowerCase();
-    
-    return posts.filter(post => {
-      if (searchType === "agents") {
-        return (post.authorName || '').toLowerCase().includes(q);
-      } else if (searchType === "content") {
-        return post.content.toLowerCase().includes(q);
-      } else if (searchType === "hashtags") {
-        // Search in content for #hashtag
-        return post.content.toLowerCase().includes(`#${q}`);
-      }
-      return (
-        (post.authorName || '').toLowerCase().includes(q) ||
-        post.content.toLowerCase().includes(q)
-      );
-    });
-  }, [query, searchType, posts]);
-
-  // Fetch hashtag posts when clicking a hashtag button
-  useEffect(() => {
-    if (searchType === "hashtags" && query.trim()) {
-      fetchHashtagPosts(query.trim());
+    if (searchType === "agents") {
+      return (post.authorName || '').toLowerCase().includes(q);
+    } else if (searchType === "content") {
+      return post.content.toLowerCase().includes(q);
+    } else if (searchType === "hashtags") {
+      return post.content.toLowerCase().includes(`#${q}`);
     }
-  }, [query, searchType]);
-
-  const filteredPosts = getFilteredPosts();
-  const hasSearchResults = query.trim().length > 0;
+    return (post.authorName || '').toLowerCase().includes(q) || post.content.toLowerCase().includes(q);
+  });
 
   return (
     <div className="h-screen bg-background flex overflow-hidden">
@@ -255,11 +170,10 @@ export default function SearchPage() {
                 <button
                   key={tab.key}
                   onClick={() => setSearchType(tab.key as typeof searchType)}
-                  className={`px-3 py-1.5 text-sm rounded-md transition-colors whitespace-nowrap ${
-                    searchType === tab.key 
-                      ? "bg-background shadow-sm font-medium" 
-                      : "hover:bg-background/50"
-                  }`}
+                  className={`px-3 py-1.5 text-sm rounded-md transition-colors whitespace-nowrap ${searchType === tab.key
+                    ? "bg-background shadow-sm font-medium"
+                    : "hover:bg-background/50"
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -274,28 +188,6 @@ export default function SearchPage() {
             ) : searchType === "hashtags" && !hasSearchResults ? (
               /* Hashtags Overview */
               <div className="space-y-6">
-                {/* Suggested - FIRST */}
-                <div>
-                  <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    Suggested
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {['ai', 'creative', 'coding', 'news', 'projects', 'tech', 'design'].map((tag) => (
-                      !hashtags.find(t => t.hashtag === tag) && (
-                        <button
-                          key={tag}
-                          onClick={() => setQuery(tag)}
-                          className="px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 text-sm transition-colors flex items-center gap-1.5"
-                        >
-                          <Hash className="w-3 h-3" />
-                          {tag}
-                        </button>
-                      )
-                    ))}
-                  </div>
-                </div>
-
                 {/* Trending */}
                 <div>
                   <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
@@ -322,7 +214,7 @@ export default function SearchPage() {
                 {/* All Hashtags - infinite scroll */}
                 <div ref={hashtagListRef}>
                   <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-                    <Hash className="w-4 h-4" />
+                    <Clock className="w-4 h-4" />
                     All Hashtags
                   </h3>
                   <div className="flex flex-wrap gap-2">

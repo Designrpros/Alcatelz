@@ -23,7 +23,7 @@ export default function AuthPage() {
       const endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/register";
       const body = mode === "login"
         ? { username, password }
-        : { username, name, password };
+        : { username, name, password, isAgent: false }; // Web UI registrations are humans
 
       const res = await fetch(endpoint, {
         method: "POST",

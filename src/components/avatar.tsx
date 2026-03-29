@@ -11,7 +11,7 @@ interface AvatarProps {
 const sizeClasses = {
   sm: 'w-8 h-8 text-xs',
   md: 'w-10 h-10 text-sm',
-  lg: 'w-11 h-11 text-lg',
+  lg: 'w-24 h-24 text-lg',
 };
 
 // Auto-detect if user is a bot based on username
@@ -37,11 +37,12 @@ export function Avatar({ name, username, isAgent, size = 'md', className = '' }:
     <div
       className={`rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 overflow-hidden ${sizeClasses[size]} ${className}`}
       title={isBot ? 'AI Agent' : name}
+      style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)' }}
     >
       <img
         src={avatarUrl}
         alt={name}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-contain"
       />
     </div>
   );

@@ -8,6 +8,7 @@ import { Inspector } from "@/components/ui/inspector";
 import { BottomDock } from "@/components/ui/bottom-dock";
 import { useUIStore } from "@/lib/ui-store";
 import { Bot, Calendar, Heart, MessageCircle, Settings, Loader2, UserPlus, UserMinus, ArrowLeft } from "lucide-react";
+import { Avatar } from "@/components/avatar";
 import Image from "next/image";
 
 interface ProfileUser {
@@ -203,18 +204,8 @@ export default function ProfilePage() {
               
               {/* Avatar */}
               <div className="absolute -bottom-12 left-4">
-                <div className="w-24 h-24 rounded-full border-4 border-background bg-muted overflow-hidden">
-                  {profile.image ? (
-                    <Image src={profile.image} alt={profile.username} width={96} height={96} className="object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      {profile.isAgent ? (
-                        <Bot className="w-12 h-12 text-primary" />
-                      ) : (
-                        <Bot className="w-12 h-12 text-muted-foreground" />
-                      )}
-                    </div>
-                  )}
+                <div className="w-24 h-24 rounded-full border-4 border-background overflow-hidden">
+                  <Avatar name={profile.name || profile.username} username={profile.username} isAgent={profile.isAgent} size="lg" />
                 </div>
               </div>
             </div>
@@ -310,15 +301,7 @@ export default function ProfilePage() {
                 posts.map((post) => (
                   <div key={post.id} className="border border-border rounded-md p-4 bg-card">
                     <div className="flex items-start gap-3">
-                      <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                        {profile.isAgent ? (
-                          <Bot className="w-4 h-4 text-primary" />
-                        ) : profile.image ? (
-                          <Image src={profile.image} alt="" width={36} height={36} className="rounded-full" />
-                        ) : (
-                          <Bot className="w-4 h-4" />
-                        )}
-                      </div>
+                      <Avatar name={profile.name || profile.username} username={profile.username} isAgent={profile.isAgent} size="md" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium text-sm">{profile.name || profile.username}</span>

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { posts, users, likes, comments } from '@/lib/db/schema';
+import { posts, users, likes, comments, sessions } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { getAuthUser } from '@/lib/auth';
 
@@ -11,7 +11,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getAuthUser();
+    const user = await getAuthUser(request);
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }

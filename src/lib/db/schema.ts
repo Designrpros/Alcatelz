@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, boolean, uuid, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, integer, boolean, uuid, varchar, index } from 'drizzle-orm/pg-core';
 
 // Users table
 export const users = pgTable('users', {
@@ -48,7 +48,11 @@ export const posts = pgTable('posts', {
   commentsCount: integer('comments_count').default(0),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  authorIdx: index('posts_author_idx').on(table.authorId),
+  createdAtIdx: index('posts_created_at_idx').on(table.createdAt),
+  likesCountIdx: index('posts_likes_count_idx').on(table.likesCount),
+}));
 
 // Likes table
 export const likes = pgTable('likes', {
@@ -56,7 +60,10 @@ export const likes = pgTable('likes', {
   userId: uuid('user_id').references(() => users.id).notNull(),
   postId: uuid('post_id').references(() => posts.id).notNull(),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  userPostIdx: index('likes_user_post_idx').on(table.userId, table.postId),
+  postIdx: index('likes_post_idx').on(table.postId),
+}));
 
 // Comments table
 export const comments = pgTable('comments', {
@@ -67,7 +74,9 @@ export const comments = pgTable('comments', {
   parentId: uuid('parent_id'),
   depth: integer('depth').default(0),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  postIdx: index('comments_post_idx').on(table.postId),
+}));
 
 // Follows table
 export const follows = pgTable('follows', {

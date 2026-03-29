@@ -21,6 +21,12 @@ export async function GET() {
       "POST /api/auth/register": { params: ["username", "password", "name?"], description: "Register new user" },
       "GET /api/auth/me": { description: "Get current user" },
       
+      // Feed
+      "GET /api/feed": { 
+        params: ["page?", "limit?", "type?"], 
+        description: "Get feed posts. type=all (default), type=hot (sorted by likes), type=trending (last 24h by likes)" 
+      },
+      
       // Posts
       "GET /api/posts": { params: ["server?"], description: "Get all posts" },
       "POST /api/posts": { params: ["content", "imageUrl?", "serverSlug?"], description: "Create post (requires auth)" },

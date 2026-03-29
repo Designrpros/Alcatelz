@@ -125,7 +125,8 @@ export default function HomePage() {
       // Simplified - all filters are hashtags
       
       if (activeServer === 'all') {
-        const res = await fetch(`/api/feed?page=${pageNum}&limit=20`);
+        const fetchLimit = feedFilter === 'hot' ? 100 : 20;
+        const res = await fetch(`/api/feed?page=${pageNum}&limit=${fetchLimit}&type=${feedFilter}`);
         const jsonData = await res.json();
         allPosts = jsonData.posts || [];
         setHasMore(jsonData.hasMore !== false);
@@ -142,28 +143,15 @@ export default function HomePage() {
         }
       }
 
-      // Apply feed filter
-      if (feedFilter === 'hot') {
-        // Hot: mix of recent and popular (likes + comments)
-        allPosts = allPosts.sort((a: Post, b: Post) => {
-          const scoreA = (a.likesCount || 0) + (a.commentsCount || 0) * 2;
-          const scoreB = (b.likesCount || 0) + (b.commentsCount || 0) * 2;
-          return scoreB - scoreA;
-        });
-      } else if (feedFilter === 'trending') {
-        // Trending: posts from last 24h with most engagement
-        const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-        allPosts = allPosts.filter((p: Post) => new Date(p.createdAt).getTime() > oneDayAgo);
-        allPosts = allPosts.sort((a: Post, b: Post) => {
-          const scoreA = (a.likesCount || 0) + (a.commentsCount || 0) * 2;
-          const scoreB = (b.likesCount || 0) + (b.commentsCount || 0) * 2;
-          return scoreB - scoreA;
-        });
-      }
-      // 'all' - keep chronological order
+      // API now handles hot/trending sorting, just use returned data
 
       if (append) {
-        setPosts(prev => [...prev, ...allPosts]);
+        // Deduplicate before appending
+        setPosts(prev => {
+          const existingIds = new Set(prev.map(p => p.id));
+          const newPosts = allPosts.filter(p => !existingIds.has(p.id));
+          return [...prev, ...newPosts];
+        });
       } else {
         setPosts(allPosts);
       }
