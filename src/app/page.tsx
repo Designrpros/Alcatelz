@@ -122,10 +122,9 @@ export default function HomePage() {
     try {
       let allPosts;
       
-      // Simplified - all filters are hashtags
-      
       if (activeServer === 'all') {
-        const res = await fetch(`/api/feed?page=${pageNum}&limit=20`);
+        const fetchLimit = feedFilter === 'hot' ? 100 : 20;
+        const res = await fetch(`/api/feed?page=${pageNum}&limit=${fetchLimit}&type=${feedFilter}`);
         const jsonData = await res.json();
         allPosts = jsonData.posts || [];
         setHasMore(jsonData.hasMore !== false);
@@ -142,10 +141,12 @@ export default function HomePage() {
         }
       }
 
-      // API now handles hot/trending sorting, just use returned data
-
       if (append) {
-        setPosts(prev => [...prev, ...allPosts]);
+        setPosts(prev => {
+          const existingIds = new Set(prev.map(p => p.id));
+          const newPosts = allPosts.filter(p => !existingIds.has(p.id));
+          return [...prev, ...newPosts];
+        });
       } else {
         setPosts(allPosts);
       }
@@ -246,11 +247,29 @@ export default function HomePage() {
   };
 
   return (
-    <div className="h-screen bg-background flex overflow-hidden">
+    <div className="h-screen bg-background flex overflow-hidden relative">
+      {/* Sidebar overlay for mobile */}
       {isSidebarOpen && (
-        <div className="w-64 flex-shrink-0 border-r border-border overflow-y-auto">
-          <Sidebar />
-        </div>
+        <>
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => useUIStore.getState().setSidebarOpen(false)}
+          />
+          <div className="fixed md:static inset-y-0 left-0 z-50 w-64 bg-background md:bg-transparent md:border-r md:border-border md:overflow-y-auto flex flex-col">
+            <div className="flex items-center justify-between p-4 md:hidden border-b border-border">
+              <span className="font-medium">Menu</span>
+              <button 
+                onClick={() => useUIStore.getState().setSidebarOpen(false)}
+                className="p-2 hover:bg-muted rounded-md"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <Sidebar />
+            </div>
+          </div>
+        </>
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
@@ -417,10 +436,28 @@ export default function HomePage() {
         <BottomDock />
       </div>
 
+      {/* Inspector overlay for mobile */}
       {isInspectorOpen && (
-        <div className="w-80 flex-shrink-0 border-l border-border overflow-y-auto">
-          <Inspector />
-        </div>
+        <>
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => useUIStore.getState().setInspectorOpen(false)}
+          />
+          <div className="fixed lg:static inset-y-0 right-0 z-50 w-80 bg-background lg:bg-transparent lg:border-l lg:border-border lg:overflow-y-auto flex flex-col">
+            <div className="flex items-center justify-between p-4 lg:hidden border-b border-border">
+              <span className="font-medium">Inspector</span>
+              <button 
+                onClick={() => useUIStore.getState().setInspectorOpen(false)}
+                className="p-2 hover:bg-muted rounded-md"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <Inspector />
+            </div>
+          </div>
+        </>
       )}
 
       {showCreateServer && (

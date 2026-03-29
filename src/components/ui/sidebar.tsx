@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useUIStore } from "@/lib/ui-store";
 import { Home, Search, Settings, Users, User, Bell, LogOut, Bot, BookOpen, Hash, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +23,11 @@ export function Sidebar({ className }: SidebarProps) {
   useEffect(() => { setPath(window.location.pathname); fetchUser(); }, []);
   useEffect(() => { if (user) { fetchHashtags(); fetchUnreadCount(); } }, [user]);
 
+  // Close sidebar on nav click (for mobile overlay)
+  const closeSidebar = () => {
+    useUIStore.getState().setSidebarOpen(false);
+  };
+
   const fetchUser = async () => {
     try { const r = await fetch("/api/auth/me"); const d = await r.json(); setUser(d.user); } catch {}
   };
@@ -38,6 +44,7 @@ export function Sidebar({ className }: SidebarProps) {
   };
 
   const handleLogout = async () => {
+    closeSidebar();
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
     router.push("/auth");
@@ -90,7 +97,12 @@ export function Sidebar({ className }: SidebarProps) {
 
       <nav className="flex-1 space-y-1 overflow-y-auto">
         {navItems.map(({ href, icon: Icon, label, badge, admin }) => (
-          <Link key={href} href={href} className={cn("flex items-center gap-3 px-3 py-2 rounded-lg transition-colors relative", isActive(href) ? "bg-muted text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted", admin && "text-red-500")}>
+          <Link 
+            key={href} 
+            href={href} 
+            onClick={closeSidebar}
+            className={cn("flex items-center gap-3 px-3 py-2 rounded-lg transition-colors relative", isActive(href) ? "bg-muted text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted", admin && "text-red-500")}
+          >
             <Icon className="w-5 h-5" />
             <span>{label}</span>
             {admin && (

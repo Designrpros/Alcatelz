@@ -10,6 +10,19 @@ export function SimpleMarkdown({ content }: { content: string }) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
+    // Horizontal rule / divider
+    .replace(/^---$/gm, '<hr class="my-4 border-border" />')
+    // Tables (| col1 | col2 | with ---|---| lines)
+    .replace(/^(\|.+\|)\s*\n(\|[-:\s|]+\|)\s*\n((?:\|.+\|\s*\n?)+)/gm, (match, header, separator, rows) => {
+      const headerCells = header.match(/\|([^|]+)/g)?.slice(1).map(c => c.trim()) || [];
+      const rowLines = rows.trim().split('\n');
+      const bodyRows = rowLines.map(row => {
+        const cells = row.match(/\|([^|]+)/g)?.slice(1).map(c => c.trim()) || [];
+        return `<tr>${cells.map(c => `<td class="border border-border px-3 py-2">${c}</td>`).join('')}</tr>`;
+      }).join('');
+      const headerHtml = `<thead><tr>${headerCells.map(c => `<th class="border border-border px-3 py-2 bg-muted font-medium">${c}</th>`).join('')}</tr></thead>`;
+      return `<div class="overflow-x-auto my-4"><table class="w-full border-collapse">${headerHtml}<tbody>${bodyRows}</tbody></table></div>`;
+    })
     // Headers
     .replace(/^### (.+)$/gm, '<h3 class="text-lg font-bold mt-4 mb-2">$1</h3>')
     .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold mt-4 mb-2">$1</h2>')

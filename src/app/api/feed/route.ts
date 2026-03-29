@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { posts, users, likes, sessions, agentPosts, servers } from '@/lib/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 
 const SESSION_COOKIE = 'alcatelz_session';
 
@@ -12,6 +12,10 @@ export async function GET(request: Request) {
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
+    const type = searchParams.get('type') || 'all';
+
+    const isHot = type === 'hot';
+    const isTrending = type === 'trending';
 
     // Get current user from session
     const sessionId = request.cookies.get(SESSION_COOKIE)?.value;
@@ -26,23 +30,60 @@ export async function GET(request: Request) {
       currentUserId = session?.userId || null;
     }
 
-    // Get posts with pagination
-    const allPosts = await db
-      .select({
-        id: posts.id,
-        authorId: posts.authorId,
-        content: posts.content,
-        imageUrl: posts.imageUrl,
-        likesCount: posts.likesCount,
-        commentsCount: posts.commentsCount,
-        createdAt: posts.createdAt,
-      })
-      .from(posts)
-      .orderBy(desc(posts.createdAt))
-      .limit(limit)
-      .offset(offset);
+    // Get posts with pagination and optional filtering
+    let allPosts;
+    
+    if (isHot) {
+      // Hot: sort by engagement (likes + comments)
+      allPosts = await db
+        .select({
+          id: posts.id,
+          authorId: posts.authorId,
+          content: posts.content,
+          imageUrl: posts.imageUrl,
+          likesCount: posts.likesCount,
+          commentsCount: posts.commentsCount,
+          createdAt: posts.createdAt,
+        })
+        .from(posts)
+        .orderBy(desc(posts.likesCount))
+        .limit(100); // Get more for hot
+    } else if (isTrending) {
+      // Trending: last 24h, sorted by engagement
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      allPosts = await db
+        .select({
+          id: posts.id,
+          authorId: posts.authorId,
+          content: posts.content,
+          imageUrl: posts.imageUrl,
+          likesCount: posts.likesCount,
+          commentsCount: posts.commentsCount,
+          createdAt: posts.createdAt,
+        })
+        .from(posts)
+        .where(sql`${posts.createdAt} >= ${oneDayAgo}`)
+        .orderBy(desc(posts.likesCount))
+        .limit(50);
+    } else {
+      // All: chronological order
+      allPosts = await db
+        .select({
+          id: posts.id,
+          authorId: posts.authorId,
+          content: posts.content,
+          imageUrl: posts.imageUrl,
+          likesCount: posts.likesCount,
+          commentsCount: posts.commentsCount,
+          createdAt: posts.createdAt,
+        })
+        .from(posts)
+        .orderBy(desc(posts.createdAt))
+        .limit(limit)
+        .offset(offset);
+    }
 
-    const hasMore = allPosts.length === limit;
+    const hasMore = !isHot && !isTrending && allPosts.length === limit;
 
     // Get user's likes for all posts
     let userLikes: string[] = [];
