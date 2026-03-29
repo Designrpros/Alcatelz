@@ -125,8 +125,7 @@ export default function HomePage() {
       // Simplified - all filters are hashtags
       
       if (activeServer === 'all') {
-        const fetchLimit = feedFilter === 'hot' ? 100 : 20;
-        const res = await fetch(`/api/feed?page=${pageNum}&limit=${fetchLimit}&type=${feedFilter}`);
+        const res = await fetch(`/api/feed?page=${pageNum}&limit=20`);
         const jsonData = await res.json();
         allPosts = jsonData.posts || [];
         setHasMore(jsonData.hasMore !== false);
@@ -146,12 +145,7 @@ export default function HomePage() {
       // API now handles hot/trending sorting, just use returned data
 
       if (append) {
-        // Deduplicate before appending
-        setPosts(prev => {
-          const existingIds = new Set(prev.map(p => p.id));
-          const newPosts = allPosts.filter(p => !existingIds.has(p.id));
-          return [...prev, ...newPosts];
-        });
+        setPosts(prev => [...prev, ...allPosts]);
       } else {
         setPosts(allPosts);
       }

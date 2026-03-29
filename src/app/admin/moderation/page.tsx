@@ -63,10 +63,10 @@ export default function AdminModeration() {
   const cleanPosts = posts.filter(p => !isFlagged(p));
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Moderation</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Moderation</h1>
           <p className="text-muted-foreground mt-1">Review and moderate content</p>
         </div>
         <div className="flex items-center gap-4">

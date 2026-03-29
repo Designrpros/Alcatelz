@@ -52,10 +52,10 @@ export default function AdminHashtags() {
   const totalPosts = hashtags.reduce((sum, h) => sum + h.count, 0);
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Hashtags</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Hashtags</h1>
           <p className="text-muted-foreground mt-1">Manage and explore hashtags</p>
         </div>
         <div className="flex items-center gap-4">
@@ -71,7 +71,7 @@ export default function AdminHashtags() {
       </div>
 
       {/* Search */}
-      <div className="relative max-w-full sm:max-w-md">
+      <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
           placeholder="Search hashtags..."
