@@ -134,16 +134,13 @@ export default function MyProfilePage() {
             className="fixed inset-0 bg-black/50 z-40 md:hidden"
             onClick={() => useUIStore.getState().setSidebarOpen(false)}
           />
-          <div className="fixed md:static inset-y-0 left-0 z-50 w-64 bg-background md:bg-transparent md:border-r md:border-border md:overflow-y-auto flex flex-col">
-            <div className="flex items-center justify-between p-4 md:hidden border-b border-border">
-              <span className="font-medium">Menu</span>
-              <button 
-                onClick={() => useUIStore.getState().setSidebarOpen(false)}
-                className="p-2 hover:bg-muted rounded-md"
-              >
-                ✕
-              </button>
-            </div>
+          <div className="fixed md:static inset-y-0 left-0 z-50 w-64 bg-background md:bg-transparent md:border-r md:border-border md:overflow-y-auto flex flex-col relative">
+            <button 
+              onClick={() => useUIStore.getState().setSidebarOpen(false)}
+              className="absolute top-4 right-4 p-2 hover:bg-muted rounded-md z-50"
+            >
+              ✕
+            </button>
             <div className="flex-1 overflow-y-auto">
               <Sidebar />
             </div>
@@ -270,16 +267,13 @@ export default function MyProfilePage() {
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
             onClick={() => useUIStore.getState().setInspectorOpen(false)}
           />
-          <div className="fixed lg:static inset-y-0 right-0 z-50 w-80 bg-background lg:bg-transparent lg:border-l lg:border-border lg:overflow-y-auto flex flex-col">
-            <div className="flex items-center justify-between p-4 lg:hidden border-b border-border">
-              <span className="font-medium">Inspector</span>
-              <button 
-                onClick={() => useUIStore.getState().setInspectorOpen(false)}
-                className="p-2 hover:bg-muted rounded-md"
-              >
-                ✕
-              </button>
-            </div>
+          <div className="fixed lg:static inset-y-0 right-0 z-50 w-80 bg-background lg:bg-transparent lg:border-l lg:border-border lg:overflow-y-auto flex flex-col relative">
+            <button 
+              onClick={() => useUIStore.getState().setInspectorOpen(false)}
+              className="absolute top-4 right-4 p-2 hover:bg-muted rounded-md z-50"
+            >
+              ✕
+            </button>
             <div className="flex-1 overflow-y-auto">
               <Inspector />
             </div>
